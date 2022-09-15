@@ -25,23 +25,8 @@ from sumolib import checkBinary  # noqa
 import traci  # noqa
 # import libsumo as traci
 
-# ray.init(address='auto', _redis_password='5241590000000000')
 
-# conn = pymysql.connect(host='34.92.132.215',user='ray',passwd='Ray@123456',database='Taskoffloading')
-# conn = pymysql.connect(host='localhost',user='lwh',passwd='666888',database='Taskoffloading')
-# conn = sqlite3.connect("/home/lwh/nfsroot/Taskoffload.db")
-# c = conn.cursor()
-print ("Open database successful")
 
-def write_sql(data: pd.DataFrame):
-    # print('start')  
-    for index, row in data.iterrows():
-        # c.execute("REPLACE into vehicle (ID,v,angle,x,y,status) values (%s,%s,%s,%s,%s,%s)",(index,row['v'], row['angle'],row['x'],row['y'],row['status']))
-        # c.execute("REPLACE into vehicle (ID,v,angle,x,y,status) values (?,?,?,?,?,?)",(index,row['v'], row['angle'],row['x'],row['y'],row['status']))
-        c.execute('''insert into vehicle (ID,v,angle,x,y,status) values (%s,%s,%s,%s,%s,%s) 
-                     on duplicate key update v=%s,angle=%s,x=%s,y=%s,status=%s''',(index,row['v'], row['angle'],row['x'],row['y'],row['status'],row['v'], row['angle'],row['x'],row['y'],row['status']))
-    conn.commit()
-    # print('com')
 
 def run():
     """execute the TraCI control loop"""
@@ -50,17 +35,9 @@ def run():
     # we start with phase 2 where EW has green
     # traci.trafficlight.setPhase("0", 2)
 
-    # po = multiprocessing.Pool(1)
-    exchange = pd.DataFrame({'v':[],
-                            'angle':[],
-                            'x':[],
-                            'y':[],
-                            'status':[]},
-                            index=[])
-
-    time_start = time.time()
     while traci.simulation.getMinExpectedNumber() > 0:
         traci.simulationStep()
+        
         # if traci.trafficlight.getPhase("0") == 2:
         #     # we are not already switching
         #     if traci.inductionloop.getLastStepVehicleNumber("0") > 0:
@@ -70,26 +47,6 @@ def run():
         #         # otherwise try to keep green for EW
         #         traci.trafficlight.setPhase("0", 2)
 
-        exchange.loc[:,'status'] = 'stop'
-        IDlist = traci.vehicle.getIDList()
-        for name in IDlist:
-            exchange.loc[name,['v','angle','x','y','status']] = [traci.vehicle.getSpeed(name),
-                                                                traci.vehicle.getAngle(name),
-                                                                traci.vehicle.getPosition(name)[0],
-                                                                traci.vehicle.getPosition(name)[1],
-                                                                'run']
-        if times == 0:
-            # po.apply_async(write_sql,(exchange,))
-            # write_sql(exchange)
-            times = 3
-        step += 1
-        times -= 1
-    # po.apply_async(write_sql,(exchange,))
-    # po.close()
-    # po.join()
-    time_end = time.time()
-    total_time = time_end - time_start
-    print("Total time is: %f" %(total_time))
 
     traci.close()
     sys.stdout.flush()
@@ -127,5 +84,4 @@ if __name__ == "__main__":
     
     run()
 
-    # conn.close()
 
