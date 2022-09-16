@@ -37,6 +37,8 @@ def run():
 
     while traci.simulation.getMinExpectedNumber() > 0:
         traci.simulationStep()
+        # Check Parking area
+        
         
         # if traci.trafficlight.getPhase("0") == 2:
         #     # we are not already switching
@@ -46,8 +48,6 @@ def run():
         #     else:
         #         # otherwise try to keep green for EW
         #         traci.trafficlight.setPhase("0", 2)
-
-
     traci.close()
     sys.stdout.flush()
 
@@ -79,8 +79,8 @@ if __name__ == "__main__":
 
     # this is the normal way of using traci. sumo is started as a
     # subprocess and then the python script connects and runs
-    traci.start([sumoBinary, "-c", "traci_tls/data/cross.sumocfg",
-                             "--tripinfo-output", "tripinfo.xml"])
+    traci.start([sumoBinary, "-c", "SUMO_data/cross.sumocfg",
+                             "--tripinfo-output", "SUMO_data/tripinfo.xml"])
     
     run()
 
