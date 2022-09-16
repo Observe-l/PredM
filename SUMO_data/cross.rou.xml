@@ -6,61 +6,61 @@
     <route id="lorry_init" edges="54o 4i" />
 
     <!--8 lorries. Stop at MainParking area-->
-    <vehicle id="lorry_0" depart="0" departLane="0" route="lorry_init" type="lorry" color="1,1,1">
+    <vehicle id="lorry_0" depart="0" departLane="0" route="lorry_init" type="lorry" color="255,255,255">
         <stop parkingArea="MainParking"/>
     </vehicle>
-    <vehicle id="lorry_1" depart="0" departLane="1" route="lorry_init" type="lorry" color="1,1,1">
+    <vehicle id="lorry_1" depart="0" departLane="1" route="lorry_init" type="lorry" color="255,255,255">
         <stop parkingArea="MainParking"/>
     </vehicle>
-    <vehicle id="lorry_2" depart="0" departLane="2" route="lorry_init" type="lorry" color="1,1,1">
+    <vehicle id="lorry_2" depart="0" departLane="2" route="lorry_init" type="lorry" color="255,255,255">
         <stop parkingArea="MainParking"/>
     </vehicle>
-    <vehicle id="lorry_3" depart="3" departLane="0" route="lorry_init" type="lorry" color="1,1,1">
+    <vehicle id="lorry_3" depart="3" departLane="0" route="lorry_init" type="lorry" color="255,255,255">
         <stop parkingArea="MainParking"/>
     </vehicle>
-    <vehicle id="lorry_4" depart="3" departLane="1" route="lorry_init" type="lorry" color="1,1,1">
+    <vehicle id="lorry_4" depart="3" departLane="1" route="lorry_init" type="lorry" color="255,255,255">
         <stop parkingArea="MainParking"/>
     </vehicle>
-    <vehicle id="lorry_5" depart="3" departLane="2" route="lorry_init" type="lorry" color="1,1,1">
+    <vehicle id="lorry_5" depart="3" departLane="2" route="lorry_init" type="lorry" color="255,255,255">
         <stop parkingArea="MainParking"/>
     </vehicle>
-    <vehicle id="lorry_6" depart="6" departLane="0" route="lorry_init" type="lorry" color="1,1,1">
+    <vehicle id="lorry_6" depart="6" departLane="0" route="lorry_init" type="lorry" color="255,255,255">
         <stop parkingArea="MainParking"/>
     </vehicle>
-    <vehicle id="lorry_7" depart="6" departLane="1" route="lorry_init" type="lorry" color="1,1,1">
+    <vehicle id="lorry_7" depart="6" departLane="1" route="lorry_init" type="lorry" color="255,255,255">
         <stop parkingArea="MainParking"/>
     </vehicle>
     <!---->
-    <flow id="flow_car_0" begin="50" end="4000" period="50" from="51o" to="52i" departLane="0" type="car" color="1,1,0"/>
-    <flow id="flow_car_3" begin="50" end="4000" period="50" from="52o" to="51i" departLane="0" type="car" color="1,1,0"/>
-    <flow id="flow_car_6" begin="50" end="4000" period="50" from="53o" to="51i" departLane="0" type="car" color="1,1,0"/>
-    <flow id="flow_car_9" begin="50" end="4000" period="50" from="54o" to="51i" departLane="0" type="car" color="1,1,0"/>
+    <flow id="flow_car_0" begin="50" end="4000" period="50" from="51o" to="52i" departLane="0" type="car" color="255,255,0"/>
+    <flow id="flow_car_3" begin="50" end="4000" period="50" from="52o" to="51i" departLane="0" type="car" color="255,255,0"/>
+    <flow id="flow_car_6" begin="50" end="4000" period="50" from="53o" to="51i" departLane="0" type="car" color="255,255,0"/>
+    <flow id="flow_car_9" begin="50" end="4000" period="50" from="54o" to="51i" departLane="0" type="car" color="255,255,0"/>
 
-    <flow id="flow_car_1" begin="52" end="4000" period="50" from="51o" to="53i" departLane="1" type="car" color="1,1,0"/>
-    <flow id="flow_car_4" begin="52" end="4000" period="50" from="52o" to="53i" departLane="1" type="car" color="1,1,0"/>
-    <flow id="flow_car_7" begin="52" end="4000" period="50" from="53o" to="52i" departLane="1" type="car" color="1,1,0"/>
-    <flow id="flow_car_10" begin="52" end="4000" period="50" from="54o" to="52i" departLane="1" type="car" color="1,1,0"/>
+    <flow id="flow_car_1" begin="52" end="4000" period="50" from="51o" to="53i" departLane="1" type="car" color="255,255,0"/>
+    <flow id="flow_car_4" begin="52" end="4000" period="50" from="52o" to="53i" departLane="1" type="car" color="255,255,0"/>
+    <flow id="flow_car_7" begin="52" end="4000" period="50" from="53o" to="52i" departLane="1" type="car" color="255,255,0"/>
+    <flow id="flow_car_10" begin="52" end="4000" period="50" from="54o" to="52i" departLane="1" type="car" color="255,255,0"/>
 
-    <flow id="flow_car_2" begin="54" end="4000" period="50" from="51o" to="54i" departLane="2" type="car" color="1,1,0"/>
-    <flow id="flow_car_5" begin="54" end="4000" period="50" from="52o" to="54i" departLane="2" type="car" color="1,1,0"/>
-    <flow id="flow_car_8" begin="54" end="4000" period="50" from="53o" to="54i" departLane="2" type="car" color="1,1,0"/>
-    <flow id="flow_car_11" begin="54" end="4000" period="50" from="54o" to="53i" departLane="2" type="car" color="1,1,0"/>
+    <flow id="flow_car_2" begin="54" end="4000" period="50" from="51o" to="54i" departLane="2" type="car" color="255,255,0"/>
+    <flow id="flow_car_5" begin="54" end="4000" period="50" from="52o" to="54i" departLane="2" type="car" color="255,255,0"/>
+    <flow id="flow_car_8" begin="54" end="4000" period="50" from="53o" to="54i" departLane="2" type="car" color="255,255,0"/>
+    <flow id="flow_car_11" begin="54" end="4000" period="50" from="54o" to="53i" departLane="2" type="car" color="255,255,0"/>
 
 
-    <flow id="flow_bus_0" begin="55" end="4000" period="65" from="51o" to="52i" departLane="0" type="bus" color="1,1,0"/>
-    <flow id="flow_bus_3" begin="55" end="4000" period="65" from="52o" to="51i" departLane="0" type="bus" color="1,1,0"/>
-    <flow id="flow_bus_6" begin="55" end="4000" period="65" from="53o" to="51i" departLane="0" type="bus" color="1,1,0"/>
-    <flow id="flow_bus_9" begin="55" end="4000" period="65" from="54o" to="51i" departLane="0" type="bus" color="1,1,0"/>
+    <flow id="flow_bus_0" begin="55" end="4000" period="65" from="51o" to="52i" departLane="0" type="bus" color="255,255,0"/>
+    <flow id="flow_bus_3" begin="55" end="4000" period="65" from="52o" to="51i" departLane="0" type="bus" color="255,255,0"/>
+    <flow id="flow_bus_6" begin="55" end="4000" period="65" from="53o" to="51i" departLane="0" type="bus" color="255,255,0"/>
+    <flow id="flow_bus_9" begin="55" end="4000" period="65" from="54o" to="51i" departLane="0" type="bus" color="255,255,0"/>
 
-    <flow id="flow_bus_1" begin="58" end="4000" period="65" from="51o" to="53i" departLane="1" type="bus" color="1,1,0"/>
-    <flow id="flow_bus_4" begin="58" end="4000" period="65" from="52o" to="53i" departLane="1" type="bus" color="1,1,0"/>
-    <flow id="flow_bus_7" begin="58" end="4000" period="65" from="53o" to="52i" departLane="1" type="bus" color="1,1,0"/>
-    <flow id="flow_bus_10" begin="58" end="4000" period="65" from="54o" to="52i" departLane="1" type="bus" color="1,1,0"/>
+    <flow id="flow_bus_1" begin="58" end="4000" period="65" from="51o" to="53i" departLane="1" type="bus" color="255,255,0"/>
+    <flow id="flow_bus_4" begin="58" end="4000" period="65" from="52o" to="53i" departLane="1" type="bus" color="255,255,0"/>
+    <flow id="flow_bus_7" begin="58" end="4000" period="65" from="53o" to="52i" departLane="1" type="bus" color="255,255,0"/>
+    <flow id="flow_bus_10" begin="58" end="4000" period="65" from="54o" to="52i" departLane="1" type="bus" color="255,255,0"/>
 
-    <flow id="flow_bus_2" begin="61" end="4000" period="65" from="51o" to="54i" departLane="2" type="bus" color="1,1,0"/>
-    <flow id="flow_bus_5" begin="61" end="4000" period="65" from="52o" to="54i" departLane="2" type="bus" color="1,1,0"/>
-    <flow id="flow_bus_8" begin="61" end="4000" period="65" from="53o" to="54i" departLane="2" type="bus" color="1,1,0"/>
-    <flow id="flow_bus_11" begin="61" end="4000" period="65" from="54o" to="53i" departLane="2" type="bus" color="1,1,0"/>
+    <flow id="flow_bus_2" begin="61" end="4000" period="65" from="51o" to="54i" departLane="2" type="bus" color="255,255,0"/>
+    <flow id="flow_bus_5" begin="61" end="4000" period="65" from="52o" to="54i" departLane="2" type="bus" color="255,255,0"/>
+    <flow id="flow_bus_8" begin="61" end="4000" period="65" from="53o" to="54i" departLane="2" type="bus" color="255,255,0"/>
+    <flow id="flow_bus_11" begin="61" end="4000" period="65" from="54o" to="53i" departLane="2" type="bus" color="255,255,0"/>
 
 </routes>
 

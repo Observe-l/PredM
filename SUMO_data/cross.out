@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2022-09-16 09:36:31 by Eclipse SUMO GUI Version 1.14.1
+<!-- generated on 2022-09-16 17:57:27 by Eclipse SUMO GUI Version 1.14.1
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
 
     <input>
-        <net-file value="/home/lwh/Documents/Code/PredM/SUMO_data/cross.net.xml"/>
-        <route-files value="/home/lwh/Documents/Code/PredM/SUMO_data/cross.rou.xml"/>
-        <additional-files value="/home/lwh/Documents/Code/PredM/SUMO_data/cross.det.xml,/home/lwh/Documents/Code/PredM/SUMO_data/cross.prk.xml"/>
+        <net-file value="SUMO_data/cross.net.xml"/>
+        <route-files value="SUMO_data/cross.rou.xml"/>
+        <additional-files value="SUMO_data/cross.det.xml,SUMO_data/cross.prk.xml"/>
     </input>
+
+    <output>
+        <tripinfo-output value="SUMO_data/tripinfo.xml"/>
+    </output>
 
     <time>
         <begin value="0"/>
@@ -18,4 +22,13 @@
         <no-step-log value="true"/>
     </report>
 
+    <traci_server>
+        <remote-port value="56481"/>
+    </traci_server>
+
 </configuration>
+-->
+
+<detector xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/det_e1_file.xsd">
+    <interval begin="0.00" end="21.00" id="0" nVehContrib="0" flow="0.00" occupancy="0.00" speed="-1.00" harmonicMeanSpeed="-1.00" length="-1.00" nVehEntered="0"/>
+</detector>

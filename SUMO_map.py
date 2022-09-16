@@ -4,6 +4,8 @@ import sumolib
 import traci.constants as tc
 
 import os
+import numpy as np
+import pandas as pd
 import time
 import ray
 import math
@@ -13,6 +15,9 @@ import multiprocessing
 import threading
 import pandas as pd
 from time import sleep
+from util.lorry_manage import Lorry
+
+PARK_CAPACITY = 4
 
 # we need to import python modules from the $SUMO_HOME/tools directory
 if 'SUMO_HOME' in os.environ:
@@ -32,22 +37,25 @@ def run():
     """execute the TraCI control loop"""
     step = 0
     times = 0
-    # we start with phase 2 where EW has green
-    # traci.trafficlight.setPhase("0", 2)
-
+    prk_count = {'Factory1_0': 0,'Factory1_1': 0,
+                 'Factory2_0': 0,'Factory2_1': 0,
+                 'Factory3_0': 0,'Factory3_1': 0,
+                 'Factory4_0': 0,'Factory4_1': 0}
+    # Generate 8 lorries
+    lorry = [Lorry(lorry_id=f'lorry_{i}') for i in range(8)]
     while traci.simulation.getMinExpectedNumber() > 0:
         traci.simulationStep()
-        # Check Parking area
+        # Check Parking area. Current count save in prk_count.
+        for prk_factory in range(4):
+            prk_count[f'Factory{prk_factory+1}_0'] = traci.parkingarea.getVehicleCount(f'Factory{prk_factory+1}_0')
+            prk_count[f'Factory{prk_factory+1}_1'] = traci.parkingarea.getVehicleCount(f'Factory{prk_factory+1}_1')
+        tmp_schedule, tmp_destination = lorry[0].refresh_schedule()
+        if tmp_schedule == 'free':
+            lorry[0].delivery(parking_available=prk_count,desitination='Factory1')
+
         
-        
-        # if traci.trafficlight.getPhase("0") == 2:
-        #     # we are not already switching
-        #     if traci.inductionloop.getLastStepVehicleNumber("0") > 0:
-        #         # there is a vehicle from the north, switch
-        #         traci.trafficlight.setPhase("0", 3)
-        #     else:
-        #         # otherwise try to keep green for EW
-        #         traci.trafficlight.setPhase("0", 2)
+
+
     traci.close()
     sys.stdout.flush()
 
