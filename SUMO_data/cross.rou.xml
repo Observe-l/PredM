@@ -3,32 +3,53 @@
     <vType id="bus" accel="0.8" decel="4.5" sigma="0.5" length="7" minGap="3" maxSpeed="25" guiShape="bus"/>
     <vType id="lorry" accel="0.8" decel="4.5" sigma="0.5" length="7" minGap="3" maxSpeed="25" guiShape="truck"/>
 
-    <route id="lorry_init" edges="54o 4i" />
+    <route id="lorry_init" edges="54o F1d" />
 
-    <!--8 lorries. Stop at MainParking area-->
+    <!--Move to Factory 1-->
+    <route id="MainParking_to_Factory1" edges="54o F1d P1i P1o" />
+    <route id="Factory2_to_Factory1" edges="P2i P2o F2c F1d P1i P1o" />
+    <route id="Factory3_to_Factory1" edges="P3i P3o F3c 3i 1o F1b P1i P1o" />
+    <route id="Factory4_to_Factory1" edges="P4i P4o F4a F1b P1i P1o" />
+    <!--Move to Factory 2-->
+    <route id="MainParking_to_Factory2" edges="54o F2d P2i P2o" />
+    <route id="Factory1_to_Factory2" edges="P1i P1o F1c F2d P2i P2o" />
+    <route id="Factory3_to_Factory2" edges="P3i P3o F3a F2b P2i P2o" />
+    <route id="Factory4_to_Factory2" edges="P4i P4o F4a 1i 4o F2d P2i P2o" />
+    <!--Move to Factory 3-->
+    <route id="MainParking_to_Factory3" edges="54o 4i 2o F3b P3i P3o" />
+    <route id="Factory1_to_Factory3" edges="P1i P1o F1c 4i 2o F3b P3i P3o" />
+    <route id="Factory2_to_Factory3" edges="P2i P2o F2a F3b P3i P3o" />
+    <route id="Factory4_to_Factory3" edges="P4i P4o F4c F3d P3i P3o" />
+    <!--Move to Factory 4-->
+    <route id="MainParking_to_Factory4" edges="54o 4i 3o F4d P4i P4o" />
+    <route id="Factory1_to_Factory4" edges="P1i P1o F1a F4b P4i P4o" />
+    <route id="Factory2_to_Factory4" edges="P2i P2o F2a 2i 3o F4d P4i P4o" />
+    <route id="Factory3_to_Factory4" edges="P3i P3o F3c F4d P4i P4o" />
+
+    <!--8 lorries. Stop at MainParking_0 area-->
     <vehicle id="lorry_0" depart="0" departLane="0" route="lorry_init" type="lorry" color="255,255,255">
-        <stop parkingArea="MainParking"/>
+        <stop parkingArea="MainParking_0"/>
     </vehicle>
     <vehicle id="lorry_1" depart="0" departLane="1" route="lorry_init" type="lorry" color="255,255,255">
-        <stop parkingArea="MainParking"/>
+        <stop parkingArea="MainParking_0"/>
     </vehicle>
     <vehicle id="lorry_2" depart="0" departLane="2" route="lorry_init" type="lorry" color="255,255,255">
-        <stop parkingArea="MainParking"/>
+        <stop parkingArea="MainParking_0"/>
     </vehicle>
-    <vehicle id="lorry_3" depart="3" departLane="0" route="lorry_init" type="lorry" color="255,255,255">
-        <stop parkingArea="MainParking"/>
+    <vehicle id="lorry_3" depart="0" departLane="0" route="lorry_init" type="lorry" color="255,255,255">
+        <stop parkingArea="MainParking_0"/>
     </vehicle>
-    <vehicle id="lorry_4" depart="3" departLane="1" route="lorry_init" type="lorry" color="255,255,255">
-        <stop parkingArea="MainParking"/>
+    <vehicle id="lorry_4" depart="0" departLane="1" route="lorry_init" type="lorry" color="255,255,255">
+        <stop parkingArea="MainParking_0"/>
     </vehicle>
-    <vehicle id="lorry_5" depart="3" departLane="2" route="lorry_init" type="lorry" color="255,255,255">
-        <stop parkingArea="MainParking"/>
+    <vehicle id="lorry_5" depart="0" departLane="2" route="lorry_init" type="lorry" color="255,255,255">
+        <stop parkingArea="MainParking_0"/>
     </vehicle>
-    <vehicle id="lorry_6" depart="6" departLane="0" route="lorry_init" type="lorry" color="255,255,255">
-        <stop parkingArea="MainParking"/>
+    <vehicle id="lorry_6" depart="0" departLane="0" route="lorry_init" type="lorry" color="255,255,255">
+        <stop parkingArea="MainParking_0"/>
     </vehicle>
-    <vehicle id="lorry_7" depart="6" departLane="1" route="lorry_init" type="lorry" color="255,255,255">
-        <stop parkingArea="MainParking"/>
+    <vehicle id="lorry_7" depart="0" departLane="1" route="lorry_init" type="lorry" color="255,255,255">
+        <stop parkingArea="MainParking_0"/>
     </vehicle>
     <!---->
     <flow id="flow_car_0" begin="50" end="4000" period="50" from="51o" to="52i" departLane="0" type="car" color="255,255,0"/>

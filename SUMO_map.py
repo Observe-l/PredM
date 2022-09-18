@@ -49,12 +49,11 @@ def run():
         for prk_factory in range(4):
             prk_count[f'Factory{prk_factory+1}_0'] = traci.parkingarea.getVehicleCount(f'Factory{prk_factory+1}_0')
             prk_count[f'Factory{prk_factory+1}_1'] = traci.parkingarea.getVehicleCount(f'Factory{prk_factory+1}_1')
-        tmp_schedule, tmp_destination = lorry[0].refresh_schedule()
-        if tmp_schedule == 'free':
-            lorry[0].delivery(parking_available=prk_count,desitination='Factory1')
-
-        
-
+        tmp_state = [lorry[i].refresh_state() for i in range(8)]
+        if lorry[0].state == 'free':
+            lorry[0].delivery(parking_available=prk_count,desitination='Factory1', current_position=lorry[0].position)
+        elif lorry[0].state == 'waitting' and 'Factory1' in lorry[0].position:
+            lorry[0].delivery(parking_available=prk_count,desitination='Factory2', current_position=lorry[0].position)
 
     traci.close()
     sys.stdout.flush()
