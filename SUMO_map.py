@@ -16,6 +16,7 @@ import threading
 import pandas as pd
 from time import sleep
 from util.lorry_manage import Lorry
+from util.factory_manage import Factory
 
 PARK_CAPACITY = 4
 
@@ -43,6 +44,9 @@ def run():
                  'Factory4_0': 0,'Factory4_1': 0}
     # Generate 8 lorries
     lorry = [Lorry(lorry_id=f'lorry_{i}') for i in range(8)]
+    # Gendrate 4 Factories
+    factory = [Factory(factory_id=f'Factory{i+1}', next_factory=f'Factory{i+2}') for i in range(4)]
+
     while traci.simulation.getMinExpectedNumber() > 0:
         traci.simulationStep()
         # Check Parking area. Current count save in prk_count.
@@ -52,8 +56,8 @@ def run():
         tmp_state = [lorry[i].refresh_state() for i in range(8)]
         if lorry[0].state == 'free':
             lorry[0].delivery(parking_available=prk_count,desitination='Factory1', current_position=lorry[0].position)
-        elif lorry[0].state == 'waitting' and 'Factory1' in lorry[0].position:
-            lorry[0].delivery(parking_available=prk_count,desitination='Factory2', current_position=lorry[0].position)
+        for tmp_factory in factory:
+            tmp_factory.factory_step(lorry[0],prk_count)
 
     traci.close()
     sys.stdout.flush()
@@ -65,7 +69,6 @@ def get_options():
     options, args = optParser.parse_args()
     return options
 
-# task_csv()
 
 if __name__ == "__main__":
     options = get_options()
