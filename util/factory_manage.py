@@ -59,6 +59,7 @@ class Factory(object):
         self.produce_product()
         self.unload_cargo(lorry)
         self.load_cargo(lorry, parking_available)
-        print(f'lorry id:{lorry.id}, current state:{lorry.state}, current weight:{lorry.weight}')
+        if lorry.state != 'stop':
+            print(f'lorry id:{lorry.id}, current state:{lorry.state}, current weight:{lorry.weight}, mk_state:{lorry.mk_state}')
 
 

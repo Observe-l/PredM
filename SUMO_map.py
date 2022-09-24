@@ -14,7 +14,6 @@ import sqlite3
 import multiprocessing
 import threading
 import pandas as pd
-from time import sleep
 from util.lorry_manage import Lorry
 from util.factory_manage import Factory
 

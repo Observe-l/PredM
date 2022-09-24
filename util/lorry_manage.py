@@ -55,8 +55,8 @@ class Lorry(object):
         parking_state = traci.vehicle.getStops(vehID=self.id)[0]
         self.position = parking_state.stoppingPlaceID
         if self.health == 'dead':
-            self.state = 'stop'
-        if parking_state.arrival < 0:
+            self.state = '                '
+        elif parking_state.arrival < 0:
             self.state = 'delivery'
         elif parking_state.stoppingPlaceID == 'MainParking_0':
             self.state = 'free'
@@ -64,17 +64,13 @@ class Lorry(object):
             self.state = 'pending for unloading'
         elif self.weight == 0:
             self.state = 'waitting'
-        
-        # current_edge = traci.vehicle.getRoadID(vehID=self.id)
-        # print(current_edge)
-        # if self.state == 'delivery':
-        #     self.MDP_model()
-        #     if self.mk_state == 4 or self.mk_state == 5:
-        #         print(f'{self.id} is dead')
-        #         self.health = 'dead'
-        #         current_edge = traci.vehicle.getRoadID(vehID=self.id)
-        #         print(current_edge)
-        #         traci.vehicle.setStop(vehID=self.id, edgeID=current_edge)
+
+        if self.state == 'delivery':
+            self.MDP_model()
+            if self.mk_state == 4 or self.mk_state == 5:
+                print(f'{self.id} is dead')
+                self.health = 'dead'
+                traci.vehicle.setSpeed(vehID=self.id, speed=0.0)
                 
         return {'state':self.state, 'postion':self.position}
     
@@ -136,8 +132,8 @@ class Lorry(object):
         # If lm < 0.013364, Markov state go to 5. 
         # If lm > 0.666558, Markov state pluse 1
         # Otherwise, no change
-        threshold1 = 0.0013364
-        threshold2 = 0.956558
+        threshold1 = 0.00013364
+        threshold2 = 0.986558
         lm = random()
         if self.mk_state < 4:
             if lm < threshold1:
