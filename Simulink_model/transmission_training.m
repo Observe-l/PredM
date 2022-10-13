@@ -39,7 +39,7 @@ numClutches= 6;
 allClutchCombinations= dec2bin(0:(2^numClutches-1)) - '0';
 
 % Get initial model configuration
-model= 'sdl_transmission_fault_detection';
+model= 'transmission_fault_detection';
 originalFaultInjection = get_param([model '/[A B C D E F]'], 'Value');
 original_slope         = get_param([model, '/Velocity Source'], 'slope');
 original_initial_speed = get_param([model, '/Velocity Source'], 'initial_speed');
@@ -79,7 +79,7 @@ for i = 1:length(allClutchCombinations)
     % This likely indicates an overconstrained clutch state.
     if excludeStateswithSlippingClutches
         % Check if any cutches are slipping
-        simlog= out.simlog_sdl_transmission_fault_detection;
+        simlog= out.simlog_transmission_fault_detection;
         overConstrained= checkForOverConstraint('ABCDEF',clutchCombination, simlog, ind_SS);
         if overConstrained
             DriveRatio_current = inf;
