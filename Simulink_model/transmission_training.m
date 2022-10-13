@@ -51,6 +51,8 @@ set_param(model,'FastRestart','on');
 set_param([model, '/Velocity Source'], 'slope', '0.5');
 set_param([model, '/Velocity Source'], 'initial_speed', '0.1');
 set_param([model, '/Velocity Source'], 'final_speed', '1');
+set_param([model, '/Gear Command'], 'Repeating_Sequence', '[-1:9]');
+set_param([model, '/Gear Command'], 'sample_time', '4');
 assignin('base', 'Tend', 10);
 
 % Initialize vector of drive ratios for each state
