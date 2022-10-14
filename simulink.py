@@ -2,16 +2,15 @@ import matlab.engine
 import numpy as np
 import pandas as pd
 
-
 if __name__ == "__main__":
     # Start MATLAB without UI
     eng = matlab.engine.start_matlab()
     # Start MATLAB with the desktop
     # eng = matlab.engine.start_matlab("-desktop")
-    model= 'Simulink_model/transmission_fault_detection'
+    # mdl= 'Simulink_model/transmission_fault_detection'
     mdl = 'transmission_fault_detection'
     # Open the Simulink model
-    eng.open_system(model,nargout=0)
+    eng.open_system(mdl,nargout=0)
     # Configure model for Fast restart
     eng.set_param(mdl,'FastRestart','on',nargout=0)
     # Get simulation results

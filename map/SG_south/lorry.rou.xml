@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes>
+    <vType id="lorry" vClass="truck"/>
+    <route id="Factory1_to_Factory2" edges="646261559 -751763275"/>
+    <route id="Factory1_to_Factory3" edges="646261559 872846754#2"/>
+    <route id="Factory1_to_Factory4" edges="646261559 -28581166#1"/>
+    
+    <route id="Factory2_to_Factory1" edges="-751763275 646261559"/>
+    <route id="Factory2_to_Factory3" edges="-751763275 872846754#2"/>
+    <route id="Factory2_to_Factory4" edges="-751763275 -28581166#1"/>
+    
+    <route id="Factory3_to_Factory1" edges="872846754#2 646261559"/>
+    <route id="Factory3_to_Factory2" edges="872846754#2 -751763275"/>
+    <route id="Factory3_to_Factory4" edges="872846754#2 -28581166#1"/>
+    
+    <route id="Factory4_to_Factory1" edges="-28581166#1 646261559"/>
+    <route id="Factory4_to_Factory2" edges="-28581166#1 -751763275"/>
+    <route id="Factory4_to_Factory3" edges="-28581166#1 872846754#2"/>
+    
+</routes>

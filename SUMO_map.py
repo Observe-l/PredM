@@ -1,19 +1,13 @@
 import sys
 import optparse
-import sumolib
-import traci.constants as tc
+import matlab.engine as engine
 
 import os
 import numpy as np
 import pandas as pd
-import time
-import ray
-import math
-import pymysql
-import sqlite3
+
 import multiprocessing
 import threading
-import pandas as pd
 from util.lorry_manage import Lorry
 from util.factory_manage import Factory
 
@@ -33,19 +27,14 @@ import traci  # noqa
 
 
 
-def run():
-    """execute the TraCI control loop"""
-    step = 0
-    times = 0
-    prk_count = {'Factory1_0': 0,'Factory1_1': 0,
-                 'Factory2_0': 0,'Factory2_1': 0,
-                 'Factory3_0': 0,'Factory3_1': 0,
-                 'Factory4_0': 0,'Factory4_1': 0}
+def run(eng,mdl:str):
+    prk_count = {'Factory1': 0,'Factory2': 0,
+                 'Factory3': 0,'Factory4': 0}
     # Generate 8 lorries
     lorry = [Lorry(lorry_id=f'lorry_{i}') for i in range(8)]
     # Gendrate 4 Factories
     factory = [Factory(factory_id=f'Factory{i+1}', next_factory=f'Factory{i+2}') for i in range(4)]
-
+    """execute the TraCI control loop"""
     while traci.simulation.getMinExpectedNumber() > 0:
         traci.simulationStep()
         # Check Parking area. Current count save in prk_count.
@@ -59,7 +48,7 @@ def run():
             tmp_factory.factory_step(lorry[0],prk_count)
 
     traci.close()
-    sys.stdout.flush()
+    # sys.stdout.flush()
 
 def get_options():
     optParser = optparse.OptionParser()
@@ -79,18 +68,28 @@ if __name__ == "__main__":
     else:
         sumoBinary = checkBinary('sumo-gui')
 
-    # net = sumolib.net.readNet("traci_tls/data/cross.net.xml")
-    # print(net.getNode('51').getCoord())
-    # nextNodeID = net.getEdge('51i').getToNode().getID()
-    # print(nextNodeID)
-    # first, generate the route file for this simulation
-    # generate_routefile()
+    # Start the matlab
+    print('Starting MATLAB')
+    eng = engine.start_matlab()
+    # eng = engine.start_matlab("-desktop")
 
-    # this is the normal way of using traci. sumo is started as a
-    # subprocess and then the python script connects and runs
-    traci.start([sumoBinary, "-c", "SUMO_data/cross.sumocfg",
-                             "--tripinfo-output", "SUMO_data/tripinfo.xml"])
+    # Start Simulink
+    print('Starting Simulink')
+    mdl = 'transmission_fault_detection'
+    eng.open_system(mdl,nargout=0)
+
+    # Enable faster start and compiler the model
+    print('Compiling the model')
+    eng.set_param(mdl,'FastRestart','on',nargout=0)
     
-    run()
+    out = eng.sim(mdl)
+    # Initial the model
+    clutch = -1*np.ones(6,dtype=np.int64)
+    eng.set_param(mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
+    init_clutch = eng.get_param(mdl + '/[A B C D E F]', 'Value')
+    traci.start([sumoBinary, "-c", "map/SG_south/osm.sumocfg"])
+    
+    run(eng,mdl)
+    eng.quit()
 
 

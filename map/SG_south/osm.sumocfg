@@ -7,7 +7,7 @@
 
     <input>
         <net-file value="osm.net.xml"/>
-        <route-files value="osm.passenger.trips.xml,osm.truck.trips.xml,osm.bus.trips.xml,osm.motorcycle.trips.xml"/>
+        <route-files value="osm.passenger.trips.xml,osm.truck.trips.xml,osm.bus.trips.xml,osm.motorcycle.trips.xml,lorry.rou.xml"/>
         <additional-files value="osm.poly.xml,cisco.prk.xml"/>
     </input>
 
