@@ -31,7 +31,7 @@ def run(eng,mdl:str):
     prk_count = {'Factory1': 0,'Factory2': 0,
                  'Factory3': 0,'Factory4': 0}
     # Generate 8 lorries
-    lorry = [Lorry(lorry_id=f'lorry_{i}') for i in range(8)]
+    lorry = [Lorry(lorry_id=f'lorry_{i}') for i in range(3)]
     # Gendrate 4 Factories
     factory = [Factory(factory_id=f'Factory{i+1}', next_factory=f'Factory{i+2}') for i in range(4)]
     """execute the TraCI control loop"""
@@ -54,6 +54,8 @@ def get_options():
     optParser = optparse.OptionParser()
     optParser.add_option("--nogui", action="store_true",
                          default=False, help="run the commandline version of sumo")
+    optParser.add_option("--share_engine", action="store_true",
+                         default=False, help="run the commandline version of sumo")
     options, args = optParser.parse_args()
     return options
 
@@ -63,26 +65,29 @@ if __name__ == "__main__":
     
     # this script has been called from the command line. It will start sumo as a
     # server, then connect and run
+    mdl = 'transmission_fault_detection'
     if options.nogui:
         sumoBinary = checkBinary('sumo')
     else:
         sumoBinary = checkBinary('sumo-gui')
 
-    # Start the matlab
-    print('Starting MATLAB')
-    eng = engine.start_matlab()
-    # eng = engine.start_matlab("-desktop")
-
-    # Start Simulink
-    print('Starting Simulink')
-    mdl = 'transmission_fault_detection'
-    eng.open_system(mdl,nargout=0)
+    if options.share_engine:
+        eng = engine.connect_matlab()
+        try:
+            stop_time = eng.evalin('base', 'Tend')
+            print('Connect to current MATLAB session')
+        except:
+            print('No running session, create new matlab session')
+            print('Starting Simulink')
+            eng.open_system(mdl,nargout=0)
+            stop_time = eng.evalin('base', 'Tend')
+            
 
     # Enable faster start and compiler the model
     print('Compiling the model')
     eng.set_param(mdl,'FastRestart','on',nargout=0)
-    
     out = eng.sim(mdl)
+
     # Initial the model
     clutch = -1*np.ones(6,dtype=np.int64)
     eng.set_param(mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
