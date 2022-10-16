@@ -92,7 +92,7 @@ if __name__ == "__main__":
     clutch = -1*np.ones(6,dtype=np.int64)
     eng.set_param(mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
     init_clutch = eng.get_param(mdl + '/[A B C D E F]', 'Value')
-    traci.start([sumoBinary, "-c", "map/SG_south/osm.sumocfg"])
+    traci.start([sumoBinary, "-c", "map/SG_south_24h/osm.sumocfg"])
     
     run(eng,mdl)
     eng.quit()
