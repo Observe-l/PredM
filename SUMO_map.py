@@ -20,30 +20,31 @@ if 'SUMO_HOME' in os.environ:
 else:
     sys.exit("please declare environment variable 'SUMO_HOME'")
 
-from sumolib import checkBinary  # noqa
-import traci  # noqa
-# import libsumo as traci
+from sumolib import checkBinary
+import traci
 
 
 
 
 def run(eng,mdl:str):
-    prk_count = {'Factory1': 0,'Factory2': 0,
-                 'Factory3': 0,'Factory4': 0}
+    prk_count = {'Factory0': 0,'Factory1': 0,
+                 'Factory2': 0,'Factory3': 0}
     # Generate 8 lorries
-    lorry = [Lorry(lorry_id=f'lorry_{i}') for i in range(3)]
+    lorry = [Lorry(lorry_id=f'lorry_{i}', eng=eng, mdl=mdl) for i in range(8)]
     # Gendrate 4 Factories
-    factory = [Factory(factory_id=f'Factory{i+1}', next_factory=f'Factory{i+2}') for i in range(4)]
-    """execute the TraCI control loop"""
-    while traci.simulation.getMinExpectedNumber() > 0:
+    factory = [Factory(factory_id=f'Factory{i}', next_factory=f'Factory{i+1}') for i in range(4)]
+    '''
+    execute the TraCI control loop
+    run 86400 seconds (24 hours)
+    '''
+    for _ in range(86400):
         traci.simulationStep()
         # Check Parking area. Current count save in prk_count.
         for prk_factory in range(4):
-            prk_count[f'Factory{prk_factory+1}_0'] = traci.parkingarea.getVehicleCount(f'Factory{prk_factory+1}_0')
-            prk_count[f'Factory{prk_factory+1}_1'] = traci.parkingarea.getVehicleCount(f'Factory{prk_factory+1}_1')
+            prk_count[f'Factory{prk_factory}'] = traci.parkingarea.getVehicleCount(f'Factory{prk_factory}')
         tmp_state = [lorry[i].refresh_state() for i in range(8)]
-        if lorry[0].state == 'free':
-            lorry[0].delivery(parking_available=prk_count,desitination='Factory1', current_position=lorry[0].position)
+
+        # Produce product and 
         for tmp_factory in factory:
             tmp_factory.factory_step(lorry[0],prk_count)
 
@@ -55,7 +56,7 @@ def get_options():
     optParser.add_option("--nogui", action="store_true",
                          default=False, help="run the commandline version of sumo")
     optParser.add_option("--share_engine", action="store_true",
-                         default=False, help="run the commandline version of sumo")
+                         default=False, help="connect to matlab engine")
     options, args = optParser.parse_args()
     return options
 
@@ -71,16 +72,15 @@ if __name__ == "__main__":
     else:
         sumoBinary = checkBinary('sumo-gui')
 
-    if options.share_engine:
-        eng = engine.connect_matlab()
-        try:
-            stop_time = eng.evalin('base', 'Tend')
-            print('Connect to current MATLAB session')
-        except:
-            print('No running session, create new matlab session')
-            print('Starting Simulink')
-            eng.open_system(mdl,nargout=0)
-            stop_time = eng.evalin('base', 'Tend')
+    eng = engine.connect_matlab()
+    try:
+        stop_time = eng.evalin('base', 'Tend')
+        print('Connect to current MATLAB session')
+    except:
+        print('No running session, create new MATLAB session')
+        print('Starting Simulink')
+        eng.open_system(mdl,nargout=0)
+        stop_time = eng.evalin('base', 'Tend')
             
 
     # Enable faster start and compiler the model
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     clutch = -1*np.ones(6,dtype=np.int64)
     eng.set_param(mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
     init_clutch = eng.get_param(mdl + '/[A B C D E F]', 'Value')
-    traci.start([sumoBinary, "-c", "map/SG_south_24h/osm.sumocfg"])
+    traci.start([sumoBinary, "-c", "map/SG_south_24h/osm.sumocfg","--threads","8"])
     
     run(eng,mdl)
     eng.quit()
