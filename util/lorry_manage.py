@@ -46,6 +46,10 @@ class Lorry(object):
         self.state_trans = 480
         self.step = 1
 
+        # Temporal repaired time step
+        self.step_tmp = 0
+
+
         self.actual_dr, self.expected_dr, self.actual_speed, self.expected_speed = np.zeros(4)
 
         # matlab engine
@@ -69,16 +73,23 @@ class Lorry(object):
         '''
         get current state, refresh state
         '''
+        # Check current location
         parking_state = traci.vehicle.getStops(vehID=self.id)[0]
         self.position = parking_state.stoppingPlaceID
-        if parking_state.arrival < 0:
+        if parking_state.arrival < 0 and self.state != 'broken':
             self.state = 'delivery'
             self.step += 1
         elif self.weight == self.capacity and self.position == self.desitination:
             self.state = 'pending for unloading'
         elif self.weight == 0:
             self.state = 'waitting'
-
+        # Repair the engine
+        elif self.state == 'broken':
+            self.step_tmp += 1
+            # Recover after 10 minutes
+            if self.step_tmp == 600:
+                traci.vehicle.setSpeed(vehID=self.id, speed=-1)
+        # Update the engine state and get sensor reading from Simulink
         if self.state == 'delivery' and self.step % self.state_trans ==0:
             self.MDP_model()
             if self.mk_state == 4 or self.mk_state == 5:
