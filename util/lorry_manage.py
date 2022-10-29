@@ -176,6 +176,7 @@ class Lorry(object):
                 self.mk_state = self.mk_state
         else:
             self.mk_state = self.mk_state
+        print(f'{self.id} state: {self.mk_state}')
         
         # Clutch fault injection
         if self.mk_state == 0:
@@ -194,6 +195,7 @@ class Lorry(object):
         # Simulation
         self.eng.set_param(self.mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
         out = self.eng.sim(self.mdl)
+        
         # Get actual drive ratio
         idx = [{'type':'.','subs':'yout'},{'type':'{}','subs':[2]},{'type':'.','subs':'Values'},{'type':'.','subs':'Data'}]
         tmp_out = out

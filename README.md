@@ -47,5 +47,9 @@ Each MDP state corresponding to a clutch fault state:
 | 4    | Unlocked fault | Unlocked fault | No fault       | No fault       | Locked fault   | Locked fault   | [0, 0, -1, -1, 1, 1]     |
 | 5    | Unlocked fault | Unlocked fault | Unlocked fault | Unlocked fault | Unlocked fault | Unlocked fault | [0, 0, 0, 0, 0, 0]       |
 
-
+|          | # Goods / week                                               |
+| -------- | ------------------------------------------------------------ |
+| Baseline | No maintenance (breakdown: 1 day to repair)                  |
+| Daily    | 4 hours everyday  (back to state 0), breakdown: 1 day to repair |
+| PARL     | 4 hours (back to state 0), breakdown: 1 day to repair        |
 

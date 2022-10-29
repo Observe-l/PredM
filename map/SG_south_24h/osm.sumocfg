@@ -8,9 +8,9 @@
     <input>
         <net-file value="osm.net.xml"/>
         <route-files value="osm.passenger.trips.xml,osm.truck.trips.xml,osm.bus.trips.xml,lorry.rou.xml"/>
-        <additional-files value="factory.prk.xml"/>
+        <additional-files value="osm.poly.xml,factory.prk.xml"/>
         <!--
-        <additional-files value="osm.poly.xml"/>
+        <additional-files value="factory.prk.xml"/>
         -->
     </input>
 

@@ -44,7 +44,7 @@ def run(eng,mdl:str):
             prk_count[f'Factory{prk_factory}'] = traci.parkingarea.getVehicleCount(f'Factory{prk_factory}')
         tmp_state = [lorry[i].refresh_state() for i in range(8)]
 
-        # Produce product and 
+        # Produce product and develievery
         for tmp_factory in factory:
             tmp_factory.factory_step(lorry[0],prk_count)
 
@@ -93,6 +93,11 @@ if __name__ == "__main__":
     eng.set_param(mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
     init_clutch = eng.get_param(mdl + '/[A B C D E F]', 'Value')
     traci.start([sumoBinary, "-c", "map/SG_south_24h/osm.sumocfg","--threads","8"])
+    # Connect to redpc
+    # traci.init(port=45687,host='redpc')
+
+    # Reload sumo map
+    # traci.load(["-c", "map/SG_south_24h/osm.sumocfg","--threads","8"])
     
     run(eng,mdl)
     eng.quit()
