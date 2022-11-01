@@ -20,6 +20,10 @@ class sumoEnv(gym.Env):
         self.observation_space = spaces.Box(low=observation_min,high=observation_max)
         # init matlab model
         self._init_matlab()
+        # Create Factory
+        self.factory = [Factory(factory_id=f'Factory{i}', next_factory=f'Factory{i+1}') for i in range(4)]
+        self.prk_count = {'Factory0': 0,'Factory1': 0,
+                          'Factory2': 0,'Factory3': 0}
         
 
     def _init_matlab(self):
@@ -50,8 +54,7 @@ class sumoEnv(gym.Env):
         '''
         traci.start(["sumo-gui", "-c", "map/SG_south_24h/osm.sumocfg","--threads","8"])
         self.lorry = [Lorry(lorry_id=f'lorry_{i}', eng=self.eng, mdl=self.mdl) for i in range(8)]
-        self.prk_count = {'Factory0': 0,'Factory1': 0,
-                          'Factory2': 0,'Factory3': 0}
+
         self.done = False
         obs = np.zeros(5)
         return obs
@@ -63,6 +66,7 @@ class sumoEnv(gym.Env):
         tmp_state = [self.lorry[i].refresh_state() for i in range(8)]
 
         for tmp_factory in self.factory:
+            tmp_factory.factory_step(self.lorry[0],self.prk_count)
 
 
         

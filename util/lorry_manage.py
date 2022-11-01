@@ -9,12 +9,13 @@ class Lorry(object):
     Parameters: lorry ID, health, position, desitination ...
     Function: updata health, move to some positon, fix or broken ...
     '''
-    def __init__(self, lorry_id:str = 'lorry_0', capacity:float = 10000.0, weight:float = 0.0,\
-                 state:str = 'delivery', position:str = 'Factory0', desitination:str = 'Factory1', eng=None, mdl:str=None):
+    def __init__(self, lorry_id:str = 'lorry_0', capacity:float = 10.0, weight:float = 0.0,\
+                 state:str = 'delivery', position:str = 'Factory0', desitination:str = 'Factory1', product:str = 'P1', eng=None, mdl:str=None):
         '''
         Parameters:
         lorry_id: string
-        capacity: The maximum capacity(kg) of lorry. Default value is 10,000 kg
+        capacity: The maximum capacity(t) of lorry. Default value is 10 t
+        product: current loading product
         weight: Current weight of cargo(kg).
         state: The job of the lorry. free, waitting, loading, pending, delivery, fixing, broken
         position: string
@@ -35,6 +36,7 @@ class Lorry(object):
         self.state = state
         self.position = position
         self.desitination = desitination
+        self.product = product
 
         # Markov state
         #    5 (lambda_0 = 0.013364)
@@ -42,7 +44,7 @@ class Lorry(object):
         self.mk_state = 0
         self.threshold1 = 0.013364
         self.threshold2 = 1-0.333442
-        # Transfer the state every 8 minutes(480 seconds) of running 
+        # Transfer the state every 8 minutes(480 seconds / sumo time)
         self.state_trans = 480
         self.step = 1
 
@@ -99,15 +101,17 @@ class Lorry(object):
                 
         return {'state':self.state, 'postion':self.position}
     
-    def load_cargo(self, weight:float) -> tuple[str, float]:
+    def load_cargo(self, weight:float, product:str) -> tuple[str, float]:
         '''
         Load cargo to the lorry. Cannot exceed the maximum capacity. The unit should be 'kg'.
         After the lorry is full, the state will change to pending, and the color change to Red
         If lorry is not empty, it would be blue color
         '''
+        self.product = product
         if self.weight + weight < self.capacity:
             self.weight += weight
             self.state = 'loading'
+            # RGBA
             traci.vehicle.setColor(typeID=self.id,color=(0,0,255,255))
             return ('successful', 0.0)
         else:
@@ -116,7 +120,7 @@ class Lorry(object):
             traci.vehicle.setColor(typeID=self.id,color=(255,0,0,255))
             return ('full', self.weight + weight - self.capacity)
     
-    def delivery(self, parking_available:dict, desitination:str, current_position:str):
+    def delivery(self, desitination:str, current_position:str):
         '''
         delevery the cargo to another factory
         '''
