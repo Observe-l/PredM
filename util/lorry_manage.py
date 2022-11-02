@@ -120,21 +120,17 @@ class Lorry(object):
             traci.vehicle.setColor(typeID=self.id,color=(255,0,0,255))
             return ('full', self.weight + weight - self.capacity)
     
-    def delivery(self, desitination:str, current_position:str):
+    def delivery(self, desitination:str):
         '''
         delevery the cargo to another factory
         '''
         self.state = 'delivery'
         # Remove vehicle first, add another lorry. (If we want to use the dijkstra algorithm in SUMO, we must creat new vehicle)
-        try:
-            color = traci.vehicle.getColor(typeID=self.id)
-            traci.vehicle.remove(vehID=self.id)
-            traci.vehicle.add(vehID=self.id, routeID=current_position + '_to_' + desitination, typeID='lorry')
-        except:
-            traci.vehicle.add(vehID=self.id, routeID=current_position + '_to_' + desitination, typeID='lorry')
-        traci.vehicle.setColor(typeID=self.id,color=color)
-        # Move out the car parking area
         self.desitination = desitination
+        traci.vehicle.changeTarget(vehID=self.id, edgeID=desitination)
+        # Move out the car parking area
+        traci.vehicle.setParkingAreaStop(vehID=self.id, stopID=self.position, duration=0)
+        # Stop at next parking area
         traci.vehicle.setParkingAreaStop(vehID=self.id, stopID=self.desitination)
     
     def unload_cargo(self, weight:float) -> tuple[str, float]:
