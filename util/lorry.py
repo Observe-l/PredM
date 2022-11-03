@@ -10,7 +10,7 @@ class Lorry(object):
     Function: updata health, move to some positon, fix or broken ...
     '''
     def __init__(self, lorry_id:str = 'lorry_0', capacity:float = 10.0, weight:float = 0.0,\
-                 state:str = 'delivery', position:str = 'Factory0', desitination:str = 'Factory1', product:str = 'P1', eng=None, mdl:str=None):
+                 state:str = 'delivery', position:str = 'Factory0', desitination:str = 'Factory1', product:str = 'P1', eng=None, mdl:str=None) -> None:
         '''
         Parameters:
         lorry_id: string
@@ -60,7 +60,7 @@ class Lorry(object):
 
     
     def update_lorry(self, capacity:float = 10000.0, weight:float = 0.0,\
-                     state:str = 'delivery', position:str = 'Factory0', desitination:str = 'Factory1'):
+                     state:str = 'delivery', position:str = 'Factory0', desitination:str = 'Factory1') -> None:
         '''
         update the parameters
         '''
@@ -120,7 +120,7 @@ class Lorry(object):
             traci.vehicle.setColor(typeID=self.id,color=(255,0,0,255))
             return ('full', self.weight + weight - self.capacity)
     
-    def delivery(self, desitination:str):
+    def delivery(self, desitination:str) -> None:
         '''
         delevery the cargo to another factory
         '''
@@ -149,7 +149,7 @@ class Lorry(object):
             traci.vehicle.setColor(typeID=self.id,color=(0,255,0,255))
             return ('not enough', remainning_weight)
     
-    def MDP_model(self):
+    def MDP_model(self) -> None:
         '''
         Update the Simulink model
         State 0: Normal

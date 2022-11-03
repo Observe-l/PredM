@@ -3,14 +3,14 @@ import traci
 import numpy as np
 import pandas as pd
 
-from .lorry_manage import Lorry
+from .lorry import Lorry
 
 class Factory(object):
     '''
     The class of factory
     '''
     def __init__(self, factory_id:str = 'Factory0', produce_rate:list = [['P1',0.0001,None,None]], 
-                 capacity:float=10000.0, container:list = ['P1','P2','P3','P4','P12','P23','A','B']):
+                 capacity:float=10000.0, container:list = ['P1','P2','P3','P4','P12','P23','A','B']) -> None:
         '''
         Parameters:
         factory_id: string
@@ -29,7 +29,7 @@ class Factory(object):
 
         self.step = 0
     
-    def produce_product(self):
+    def produce_product(self) -> None:
         '''
         Produce new product. Won't exceed container capacity
         '''
@@ -56,7 +56,7 @@ class Factory(object):
                 # Produce directly
                 self.container.at[index,'storage'] = self.container.loc[index,'storage'] + self.product.loc[index,'rate']
     
-    def load_cargo(self, lorry:Lorry, product:str):
+    def load_cargo(self, lorry:Lorry, product:str) -> None:
         '''
         Load cargo to the lorry in current factory
         '''
@@ -71,7 +71,7 @@ class Factory(object):
             lorry_state, exceed_cargo =  lorry.load_cargo(weight=load_weight, product= product)
             self.container.at[product,'storage'] = self.container.loc[product,'storage'] - (load_weight - exceed_cargo)
     
-    def unload_cargo(self, lorry:Lorry):
+    def unload_cargo(self, lorry:Lorry) -> None:
         '''
         Unload cargo to container
         '''
@@ -83,12 +83,6 @@ class Factory(object):
             unload_weight = min(0.05, self.container.loc[lorry.product,'capacity'] - self.container.loc[lorry.product,'storage'])
             lorry_state, exceed_cargo = lorry.unload_cargo(unload_weight)
             self.container.at[lorry.product,'storage'] = self.container.loc[lorry.product,'storage'] + (unload_weight - exceed_cargo)
-    
-    def factory_step(self, lorry:Lorry, product:str):
-        self.produce_product()
-        self.unload_cargo(lorry)
-        self.load_cargo(lorry, product)
-        # if lorry.state != 'broken':
-        #     print(f'lorry id:{lorry.id}, current state:{lorry.state}, current weight:{lorry.weight}, mk_state:{lorry.mk_state}')
+
 
 

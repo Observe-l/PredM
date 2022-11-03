@@ -4,8 +4,8 @@ import numpy as np
 import traci
 import matlab.engine as engine
 
-from .lorry_manage import Lorry
-from .factory_manage import Factory
+from .lorry import Lorry
+from .factory import Factory
 
 class sumoEnv(gym.Env):
     '''

@@ -47,9 +47,54 @@ Each MDP state corresponding to a clutch fault state:
 | 4    | Unlocked fault | Unlocked fault | No fault       | No fault       | Locked fault   | Locked fault   | [0, 0, -1, -1, 1, 1]     |
 | 5    | Unlocked fault | Unlocked fault | Unlocked fault | Unlocked fault | Unlocked fault | Unlocked fault | [0, 0, 0, 0, 0, 0]       |
 
+### Testbed
+
+4 factories, 8 lorries
+
 |          | # Goods / week                                               |
 | -------- | ------------------------------------------------------------ |
 | Baseline | No maintenance (breakdown: 1 day to repair)                  |
 | Daily    | 4 hours everyday  (back to state 0), breakdown: 1 day to repair |
 | PARL     | 4 hours (back to state 0), breakdown: 1 day to repair        |
+
+### Lorry management
+
+Condition (Observation space):
+
+1. Product storage,
+2. Factory state, i.e materials storage
+3. Lorry density, i.e # lorries in each factory
+4. Lorry position, i.e distance between current position to the destination
+5. Lorry current state.
+
+#### Step 1: Calculate the score for each factory. The greater the score, the more lorries are required.
+
+* Score of current product storage
+
+  $S_1=p_1*min\{m_p,m_l\}$
+
+* Score of materials storage
+
+  $S_2=(rate*ratio*E[t]-m_s)p_2$
+
+* Score of lorry density
+
+  $S_3=-n_{lorry}*p_3$
+
+* Sum up the scores
+
+  $S =S_1+S_2+S_3 $
+
+**Remark**:
+
+1. The material of one product is the product produced in other factories. So, $S_2$ should get from other factories.
+2. $S_3$ should be a huge number, only when $S>0$, the factory need new lorry.
+
+#### Step 2: Assign the lorry 
+
+* Normalise the distance or times a constant
+
+  $C_1=d*p_4$
+
+* Only select 'waiting' or 'loading'
 

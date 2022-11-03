@@ -8,8 +8,8 @@ import pandas as pd
 
 import multiprocessing
 import threading
-from util.lorry_manage import Lorry
-from util.factory_manage import Factory
+from util.lorry import Lorry
+from util.factory import Factory
 
 PARK_CAPACITY = 4
 
@@ -23,30 +23,27 @@ else:
 from sumolib import checkBinary
 import traci
 
-
-
-
 def run(eng,mdl:str):
-    prk_count = {'Factory0': 0,'Factory1': 0,
-                 'Factory2': 0,'Factory3': 0}
     # Generate 8 lorries
     lorry = [Lorry(lorry_id=f'lorry_{i}', eng=eng, mdl=mdl) for i in range(8)]
     # Gendrate 4 Factories
-    factory = [Factory(factory_id=f'Factory{i}', next_factory=f'Factory{i+1}') for i in range(4)]
+    factory = [Factory(factory_id='Factory0', produce_rate=[['P1',0.0001,None,None]]),
+               Factory(factory_id='Factory1', produce_rate=[['P2',0.0001,None,None],['P12',0.00005,'P1,P2','1,1']]),
+               Factory(factory_id='Factory2', produce_rate=[['P3',0.0001,None,None],['P23',0.00005,'P2,P3','1,1'],['A',0.00005,'P12,P3','1,1']]),
+               Factory(factory_id='Factory3', produce_rate=[['P4',0.0001,None,None],['B',0.00005,'P23,P4','1,1']])
+              ]
     '''
     execute the TraCI control loop
     run 86400 seconds (24 hours)
     '''
     for _ in range(86400):
         traci.simulationStep()
-        # Check Parking area. Current count save in prk_count.
-        for prk_factory in range(4):
-            prk_count[f'Factory{prk_factory}'] = traci.parkingarea.getVehicleCount(f'Factory{prk_factory}')
+
         tmp_state = [lorry[i].refresh_state() for i in range(8)]
 
         # Produce product and develievery
         for tmp_factory in factory:
-            tmp_factory.factory_step(lorry[0],prk_count)
+            tmp_factory.factory_step(lorry[0])
 
     traci.close()
     # sys.stdout.flush()
