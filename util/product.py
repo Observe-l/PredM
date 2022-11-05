@@ -8,6 +8,7 @@ class product_management(object):
     This class is based on the industry 4.0 project
     There are 2 final products: A(P123) and B(P234)
     '''
+    
     def __init__(self, factory:list[Factory], lorry:list[Lorry]) -> None:
         '''
         Input the list of factories and the lorries
@@ -19,6 +20,7 @@ class product_management(object):
         '''
         self.factory = factory
         self.lorry = lorry
+        self.p = np.array([1.0,1.0,1.0,1.0,1.0])
     
     def produce_product(self) -> None:
         '''
@@ -30,5 +32,11 @@ class product_management(object):
                 tmp_factory.unload_cargo(tmp_lorry)
     
     def transfer_product(self) -> None:
-        for tmp_factory in self.factory:
-            pass
+        s1 = np.zeros(len(self.factory))
+        s2 = np.zeros((len(self.factory),self.factory[0].container.shape[0]))
+        s3 = np.zeros(len(self.factory))
+        for i in range(len(self.factory)):
+            # s1 = self.p[0] * min()
+            # Get list of product
+            tmp_product = self.factory[i].product.index.values.tolist()
+            # Find the large

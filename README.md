@@ -71,7 +71,7 @@ Condition (Observation space):
 
 * Score of current product storage
 
-  $S_1=p_1*min\{m_p,m_l\}$
+  $S_1=p_1*min\{m_p,lorry\_capacity\}$
 
 * Score of materials storage
 
