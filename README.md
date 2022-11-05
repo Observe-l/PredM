@@ -88,13 +88,21 @@ Condition (Observation space):
 **Remark**:
 
 1. The material of one product is the product produced in other factories. So, $S_2$ should get from other factories.
-2. $S_3$ should be a huge number, only when $S>0$, the factory need new lorry.
+2. Design $p_3$ properly, only when $S>0$, the factory need new lorry.
+3. Lorry pool: when $n^{'}=n_{lorry}-1$, $S$ is still a positive value.
 
 #### Step 2: Assign the lorry 
 
 * Normalise the distance or times a constant
 
-  $C_1=d*p_4$
+  $C_1=-d*p_4$
 
-* Only select 'waiting' or 'loading'
+* Only select 'waiting' or 'loading' lorry
 
+  $C_2=\left\{\begin{array}{11}1&\textrm{status is waiting}\\p_5*loaded\quad weight&\textrm{status is loading}\\0&\textrm{o.w}\end{array}\right.$, **Remark:** $p_5*loaded\quad weight<1$
+
+* Calculate the score of each lorry, select the lorry with highest score.
+
+  $C=C_1*C_2$
+
+**Remark:** The score should be recalculated whenever a new lorry arrives or departs.
