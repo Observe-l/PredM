@@ -21,6 +21,9 @@ class product_management(object):
         self.factory = factory
         self.lorry = lorry
         self.p = np.array([1.0,1.0,1.0,1.0,1.0])
+        self.et = 1200
+        # Create the dictionary for product
+        self.product_idx = {tmp_factory.id:tmp_factory.product.index.values.tolist() for tmp_factory in self.factory}
     
     def produce_product(self) -> None:
         '''
@@ -35,8 +38,10 @@ class product_management(object):
         s1 = np.zeros(len(self.factory))
         s2 = np.zeros((len(self.factory),self.factory[0].container.shape[0]))
         s3 = np.zeros(len(self.factory))
-        for i in range(len(self.factory)):
-            # s1 = self.p[0] * min()
-            # Get list of product
-            tmp_product = self.factory[i].product.index.values.tolist()
-            # Find the large
+        for tmp_factory in self.factory:
+            # Calculate s1
+            tmp_product = self.product_idx[tmp_factory.id]
+            tmp_storage = tmp_factory.container.loc[tmp_product,'storage'].max()
+            s1 = self.p[0] * min(tmp_storage,self.lorry[0].capacity)
+            # Calculate s2
+            
