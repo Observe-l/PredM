@@ -58,6 +58,25 @@ class Lorry(object):
         self.eng = eng
         self.mdl = mdl
 
+        # sensor reading
+        self.sensor = pd.DataFrame({'c1':[],
+                                    'c2':[],
+                                    'c3':[],
+                                    'c4':[],
+                                    'c5':[],
+                                    'c6':[],
+                                    's1':[],
+                                    's2':[],
+                                    's3':[],
+                                    's4':[],
+                                    'state':[],
+                                    'time_step':[]
+        })
+
+        self.g1=self.eng.evalin('base','g1')
+        self.g2=self.eng.evalin('base','g2')
+        self.g3=self.eng.evalin('base','g3')
+
     
     def update_lorry(self, capacity:float = 10000.0, weight:float = 0.0,\
                      state:str = 'delivery', position:str = 'Factory0', desitination:str = 'Factory1') -> None:
@@ -71,14 +90,16 @@ class Lorry(object):
         self.position = position
         self.desitination = desitination
 
-    def refresh_state(self) -> dict:
+    def refresh_state(self,time_step) -> dict:
         '''
         get current state, refresh state
         '''
         # Check current location
-        parking_state = traci.vehicle.getStops(vehID=self.id)[0]
+        parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
         self.position = parking_state.stoppingPlaceID
-        if parking_state.arrival < 0 and self.state != 'broken':
+        if self.state == 'broken':
+            pass
+        elif parking_state.arrival < 0:
             self.state = 'delivery'
             self.step += 1
         elif self.weight == self.capacity and self.position == self.desitination:
@@ -93,11 +114,19 @@ class Lorry(object):
                 traci.vehicle.setSpeed(vehID=self.id, speed=-1)
         # Update the engine state and get sensor reading from Simulink
         if self.state == 'delivery' and self.step % self.state_trans ==0:
-            self.MDP_model()
+            self.MDP_model(time_step)
             if self.mk_state == 4 or self.mk_state == 5:
                 print(f'{self.id} is broken')
                 self.state = 'broken'
-                traci.vehicle.setSpeed(vehID=self.id, speed=0.0)
+                # traci.vehicle.setSpeed(vehID=self.id, speed=0.0)
+                try:
+                    # stop after 20 meters barking
+                    traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id)+20)
+                except:
+                    # stop at next edge. the length of the edge must longer than 20m
+                    tmp_idx = traci.vehicle.getRouteIndex(vehID=self.id)
+                    tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx]
+                    traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=20)
                 
         return {'state':self.state, 'postion':self.position}
     
@@ -149,7 +178,7 @@ class Lorry(object):
             traci.vehicle.setColor(typeID=self.id,color=(0,255,0,255))
             return ('not enough', remainning_weight)
     
-    def MDP_model(self) -> None:
+    def MDP_model(self,time_step) -> None:
         '''
         Update the Simulink model
         State 0: Normal
@@ -195,7 +224,6 @@ class Lorry(object):
         # Simulation
         self.eng.set_param(self.mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
         out = self.eng.sim(self.mdl)
-        
         # Get actual drive ratio
         idx = [{'type':'.','subs':'yout'},{'type':'{}','subs':[2]},{'type':'.','subs':'Values'},{'type':'.','subs':'Data'}]
         tmp_out = out
@@ -203,12 +231,12 @@ class Lorry(object):
             tmp_out = self.eng.subsref(tmp_out,tmp_idx)
         self.actual_dr = np.array(tmp_out)
 
-        # Get expected drive ratio
-        idx = [{'type':'.','subs':'yout'},{'type':'{}','subs':[3]},{'type':'.','subs':'Values'},{'type':'.','subs':'Data'}]
-        tmp_out = out
-        for tmp_idx in idx:
-            tmp_out = self.eng.subsref(tmp_out,tmp_idx)
-        self.expected_dr = np.array(tmp_out)
+        # # Get expected drive ratio
+        # idx = [{'type':'.','subs':'yout'},{'type':'{}','subs':[3]},{'type':'.','subs':'Values'},{'type':'.','subs':'Data'}]
+        # tmp_out = out
+        # for tmp_idx in idx:
+        #     tmp_out = self.eng.subsref(tmp_out,tmp_idx)
+        # self.expected_dr = np.array(tmp_out)
 
         # Get actual speed
         idx = [{'type':'.','subs':'yout'},{'type':'{}','subs':[6]},{'type':'.','subs':'Values'},{'type':'.','subs':'Data'}]
@@ -223,7 +251,50 @@ class Lorry(object):
         for tmp_idx in idx:
             tmp_out = self.eng.subsref(tmp_out,tmp_idx)
         self.expected_speed = np.array(tmp_out)
-        
+
+        # Get gear command, there are 6 gears
+        idx = [{'type':'.','subs':'yout'},{'type':'{}','subs':[4]},{'type':'.','subs':'Values'},{'type':'.','subs':'Data'}]
+        tmp_out = out
+        for tmp_idx in idx:
+            tmp_out = self.eng.subsref(tmp_out,tmp_idx)
+        self.gear_command = np.array(tmp_out).reshape(self.actual_dr.shape[0],6)
+
+        self.expected_dr = np.zeros(self.actual_dr.shape)
+        for i in range(self.gear_command.shape[0]):
+            # Gear R
+            if (self.gear_command[i] == [1,0,0,1,0,1]).all():
+                self.expected_dr[i,0] = -self.g1/(self.g2*(1+self.g1))
+            # Gear 1
+            elif (self.gear_command[i] == [0,0,1,1,0,1]).all():
+                self.expected_dr[i,0] = self.g1/(self.g3*(1+self.g1))
+            # Gear 2
+            elif (self.gear_command[i] == [0,0,1,0,1,1]).all():
+                self.expected_dr[i,0] = self.g1*(1+self.g2)/((1+self.g1)*(self.g3+self.g2))
+            # Gear 3
+            elif (self.gear_command[i] == [1,0,1,0,0,1]).all():
+                self.expected_dr[i,0] = self.g1/(1+self.g1)
+            # Gear 4
+            elif (self.gear_command[i] == [0,1,1,0,0,1]).all():
+                self.expected_dr[i,0] = (self.g3*(1+self.g1)-1)/(self.g3*(1+self.g1))
+            # Gear 5
+            elif (self.gear_command[i] == [1,1,1,0,0,0]).all():
+                self.expected_dr[i,0] = 1.0
+            # Gear 6
+            elif (self.gear_command[i] == [1,1,0,0,0,1]).all():
+                self.expected_dr[i,0] = (self.g2*(1+self.g1)+1)/(self.g2*(1+self.g1))
+            # Gear 7
+            elif (self.gear_command[i] == [0,1,0,0,1,1]).all():
+                self.expected_dr[i,0] = (1+self.g2)/self.g2
+            # Gear 0
+            else: 
+                self.expected_dr[i,0] = 0
+
+
+        tmp_array = np.concatenate((self.gear_command.T,self.actual_speed.T,self.expected_speed.T,self.actual_dr.T,self.expected_dr.T)).T
+        tmp_sensor=pd.DataFrame(tmp_array,columns=['c1','c2','c3','c4','c5','c6','s1','s2','s3','s4'])
+        tmp_sensor['state'] = f'MDP{self.mk_state}'
+        tmp_sensor['time_step']=time_step
+        self.sensor=pd.concat([self.sensor,tmp_sensor],ignore_index=True)        
         
 
 

@@ -42,7 +42,7 @@ Each MDP state corresponding to a clutch fault state:
 | ---- | -------------- | -------------- | -------------- | -------------- | -------------- | -------------- | ------------------------ |
 | 0    | No fault       | No fault       | No fault       | No fault       | No fault       | No fault       | [-1, -1, -1, -1, -1, -1] |
 | 1    | Locked fault   | No fault       | No fault       | No fault       | No fault       | No fault       | [1, -1, -1, -1, -1, -1]  |
-| 2    | No fault       | Locked fault   | Locked fault   | No fault       | No fault       | No fault       | [1, 1, -1, -1, -1, -1]   |
+| 2    | No fault       | Locked fault   | Locked fault   | No fault       | No fault       | No fault       | [-1, 1, 1, -1, -1, -1]   |
 | 3    | No fault       | No fault       | No fault       | Locked fault   | Locked fault   | Unlocked fault | [-1, -1, -1, 1, 1, 0]    |
 | 4    | Unlocked fault | Unlocked fault | No fault       | No fault       | Locked fault   | Locked fault   | [0, 0, -1, -1, 1, 1]     |
 | 5    | Unlocked fault | Unlocked fault | Unlocked fault | Unlocked fault | Unlocked fault | Unlocked fault | [0, 0, 0, 0, 0, 0]       |
