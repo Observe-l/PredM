@@ -62,24 +62,24 @@ Each MDP state corresponding to a clutch fault state:
 Condition (Observation space):
 
 1. Product storage,
-2. Factory state, i.e materials storage
-3. Lorry density, i.e # lorries in each factory
-4. Lorry position, i.e distance between current position to the destination
+2. Factory state, i.e., materials storage
+3. Lorry density, i.e .,# lorries in each factory
+4. Lorry position, i.e., distance between current position to the destination
 5. Lorry current state.
 
 #### Step 1: Calculate the score for each factory. The greater the score, the more lorries are required.
 
 * Score of current product storage
 
-  $S_1=p_1*min\{m_p,lorry\_capacity\}$
+  $S_1=p_0*min\{m_p,lorry\_capacity\}$
 
 * Score of materials storage
 
-  $S_2=(rate*ratio*E[t]-m_s)p_2$
+  $S_2=(rate*ratio*E[t]-m_s)p_1$
 
 * Score of lorry density
 
-  $S_3=-n_{lorry}*p_3$
+  $S_3=-n_{lorry}*p_2$
 
 * Sum up the scores
 
@@ -95,11 +95,11 @@ Condition (Observation space):
 
 * Normalise the distance or times a constant
 
-  $C_1=-d*p_4$
+  $C_1=-d*p_3$
 
 * Only select 'waiting' or 'loading' lorry
 
-  $C_2=\left\{\begin{array}{11}1&\textrm{status is waiting}\\p_5*loaded\quad weight&\textrm{status is loading}\\0&\textrm{o.w}\end{array}\right.$, **Remark:** $p_5*loaded\quad weight<1$
+  $C_2=\left\{\begin{array}{11}1&\textrm{status is waiting}\\p_4*loaded\quad weight&\textrm{status is loading}\\0&\textrm{o.w}\end{array}\right.$, **Remark:** $p_5*loaded\quad weight<1$
 
 * Calculate the score of each lorry, select the lorry with highest score.
 

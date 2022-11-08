@@ -97,8 +97,15 @@ class Lorry(object):
         # Check current location
         parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
         self.position = parking_state.stoppingPlaceID
+        # Repair the engine
         if self.state == 'broken':
-            pass
+            self.step_tmp += 1
+            # Recover after 10 minutes (600 seconds)
+            if self.step_tmp % 600 == 0:
+                traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id),duration=0)
+                self.state = 'delivery'
+                self.mk_state = 0
+                self.step += 1
         elif parking_state.arrival < 0:
             self.state = 'delivery'
             self.step += 1
@@ -106,12 +113,8 @@ class Lorry(object):
             self.state = 'pending for unloading'
         elif self.weight == 0:
             self.state = 'waitting'
-        # Repair the engine
-        elif self.state == 'broken':
-            self.step_tmp += 1
-            # Recover after 10 minutes
-            if self.step_tmp == 600:
-                traci.vehicle.setSpeed(vehID=self.id, speed=-1)
+        
+
         # Update the engine state and get sensor reading from Simulink
         if self.state == 'delivery' and self.step % self.state_trans ==0:
             self.MDP_model(time_step)
