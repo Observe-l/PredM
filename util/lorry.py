@@ -6,11 +6,11 @@ from random import random
 class Lorry(object):
     '''
     The class of lorry. 
-    Parameters: lorry ID, health, position, desitination ...
+    Parameters: lorry ID, health, position, destination ...
     Function: updata health, move to some positon, fix or broken ...
     '''
     def __init__(self, lorry_id:str = 'lorry_0', capacity:float = 10.0, weight:float = 0.0,\
-                 state:str = 'delivery', position:str = 'Factory0', desitination:str = 'Factory1', product:str = 'P1', eng=None, mdl:str=None) -> None:
+                 state:str = 'delivery', position:str = 'Factory0', destination:str = 'Factory1', product:str = 'A', eng=None, mdl:str=None) -> None:
         '''
         Parameters:
         lorry_id: string
@@ -19,14 +19,14 @@ class Lorry(object):
         weight: Current weight of cargo(kg).
         state: The job of the lorry. free, waitting, loading, pending, delivery, fixing, broken
         position: string
-        desitination: string
+        destination: string
         '''
         # Create lorry in sumo. If the lorry already exist, remove it first
         try:
-            traci.vehicle.add(vehID=lorry_id,routeID=position + '_to_'+ desitination, typeID='lorry')
+            traci.vehicle.add(vehID=lorry_id,routeID=position + '_to_'+ destination, typeID='lorry')
         except:
             traci.vehicle.remove(vehID=lorry_id)
-            traci.vehicle.add(vehID=lorry_id,routeID=position + '_to_'+ desitination, typeID='lorry')
+            traci.vehicle.add(vehID=lorry_id,routeID=position + '_to_'+ destination, typeID='lorry')
         traci.vehicle.setParkingAreaStop(vehID=lorry_id,stopID=position)
         
         self.id = lorry_id
@@ -35,7 +35,7 @@ class Lorry(object):
 
         self.state = state
         self.position = position
-        self.desitination = desitination
+        self.destination = destination
         self.product = product
 
         # Markov state
@@ -79,7 +79,7 @@ class Lorry(object):
 
     
     def update_lorry(self, capacity:float = 10000.0, weight:float = 0.0,\
-                     state:str = 'delivery', position:str = 'Factory0', desitination:str = 'Factory1') -> None:
+                     state:str = 'delivery', position:str = 'Factory0', destination:str = 'Factory1') -> None:
         '''
         update the parameters
         '''
@@ -88,7 +88,7 @@ class Lorry(object):
 
         self.state = state
         self.position = position
-        self.desitination = desitination
+        self.destination = destination
 
     def refresh_state(self,time_step) -> dict:
         '''
@@ -109,7 +109,7 @@ class Lorry(object):
         elif parking_state.arrival < 0:
             self.state = 'delivery'
             self.step += 1
-        elif self.weight == self.capacity and self.position == self.desitination:
+        elif self.weight == self.capacity and self.position == self.destination:
             self.state = 'pending for unloading'
         elif self.weight == 0:
             self.state = 'waitting'
@@ -152,18 +152,19 @@ class Lorry(object):
             traci.vehicle.setColor(typeID=self.id,color=(255,0,0,255))
             return ('full', self.weight + weight - self.capacity)
     
-    def delivery(self, desitination:str) -> None:
+    def delivery(self, destination:str) -> None:
         '''
         delevery the cargo to another factory
         '''
         self.state = 'delivery'
         # Remove vehicle first, add another lorry. (If we want to use the dijkstra algorithm in SUMO, we must creat new vehicle)
-        self.desitination = desitination
-        traci.vehicle.changeTarget(vehID=self.id, edgeID=desitination)
+        self.destination = destination
+        traci.vehicle.changeTarget(vehID=self.id, edgeID=destination)
         # Move out the car parking area
         traci.vehicle.setParkingAreaStop(vehID=self.id, stopID=self.position, duration=0)
         # Stop at next parking area
-        traci.vehicle.setParkingAreaStop(vehID=self.id, stopID=self.desitination)
+        traci.vehicle.setParkingAreaStop(vehID=self.id, stopID=self.destination)
+        print(f'{self.id} move from {self.position} to {self.destination}')
     
     def unload_cargo(self, weight:float) -> tuple[str, float]:
         '''

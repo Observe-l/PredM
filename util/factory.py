@@ -25,7 +25,7 @@ class Factory(object):
         self.product.set_index(['product'],inplace=True)
         # The dataframe of the container
         self.container = pd.DataFrame({'product':container, 'storage':[0.0]*len(container), 'capacity':[capacity] * len(container)})
-        self.container.set_index(['product'],inplace=True)        
+        self.container.set_index(['product'],inplace=True)
 
         self.step = 0
     
@@ -56,7 +56,7 @@ class Factory(object):
                 # Produce directly
                 self.container.at[index,'storage'] = self.container.loc[index,'storage'] + self.product.loc[index,'rate']
     
-    def load_cargo(self, lorry:Lorry, product:str) -> None:
+    def load_cargo(self, lorry:Lorry, product:str) -> str:
         '''
         Load cargo to the lorry in current factory
         '''
@@ -65,11 +65,12 @@ class Factory(object):
         if self.id in lorry.position and (lorry.state == 'waitting' or lorry.state == 'loading') and self.container.loc[product,'storage'] != 0:
             if lorry.state == 'waitting':
                 # Print when startting loading
-                print(f'Start loading cargo at:{self.id}')
+                print(f'{lorry.id} start loading cargo at:{self.id}')
             # Maximum loading speed: 0.05 t/s
             load_weight = min(0.05, self.container.loc[product,'storage'])
             lorry_state, exceed_cargo =  lorry.load_cargo(weight=load_weight, product= product)
             self.container.at[product,'storage'] = self.container.loc[product,'storage'] - (load_weight - exceed_cargo)
+            return lorry_state
     
     def unload_cargo(self, lorry:Lorry) -> None:
         '''
@@ -78,7 +79,7 @@ class Factory(object):
         if self.id in lorry.position and (lorry.state == 'pending for unloading' or lorry.state == 'unloading') and self.container.loc[lorry.product,'storage'] < 0:
             if lorry.state == 'pending for unloading':
                 # Print when startting unloading
-                print(f'start unloading at:{self.id}')
+                print(f'{lorry.id} start unloading at:{self.id}')
             # Maximum loading speed: 0.05 t/s
             unload_weight = min(0.05, self.container.loc[lorry.product,'capacity'] - self.container.loc[lorry.product,'storage'])
             lorry_state, exceed_cargo = lorry.unload_cargo(unload_weight)

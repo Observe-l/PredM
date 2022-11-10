@@ -75,7 +75,7 @@ Condition (Observation space):
 
 * Score of materials storage
 
-  $S_2=(rate*ratio*E[t]-m_s)p_1$
+  $S_2=(ms-rate*ratio*E[t])p_1$
 
 * Score of lorry density
 
@@ -88,7 +88,7 @@ Condition (Observation space):
 **Remark**:
 
 1. The material of one product is the product produced in other factories. So, $S_2$ should get from other factories.
-2. Design $p_3$ properly, only when $S>0$, the factory need new lorry.
+2. Design $p_2$ properly, only when $S>0$, the factory need new lorry.
 3. Lorry pool: when $n^{'}=n_{lorry}-1$, $S$ is still a positive value.
 
 #### Step 2: Assign the lorry 

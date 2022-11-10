@@ -10,6 +10,7 @@ import multiprocessing
 import threading
 from util.lorry import Lorry
 from util.factory import Factory
+from util.product import product_management
 
 PARK_CAPACITY = 4
 
@@ -27,23 +28,25 @@ def run(eng,mdl:str):
     # Generate 8 lorries
     lorry = [Lorry(lorry_id=f'lorry_{i}', eng=eng, mdl=mdl) for i in range(8)]
     # Gendrate 4 Factories
-    factory = [Factory(factory_id='Factory0', produce_rate=[['P1',0.0001,None,None]]),
-               Factory(factory_id='Factory1', produce_rate=[['P2',0.0001,None,None],['P12',0.00005,'P1,P2','1,1']]),
-               Factory(factory_id='Factory2', produce_rate=[['P3',0.0001,None,None],['P23',0.00005,'P2,P3','1,1'],['A',0.00005,'P12,P3','1,1']]),
-               Factory(factory_id='Factory3', produce_rate=[['P4',0.0001,None,None],['B',0.00005,'P23,P4','1,1']])
+    factory = [Factory(factory_id='Factory0', produce_rate=[['P1',0.01,None,None]]),
+               Factory(factory_id='Factory1', produce_rate=[['P2',0.01,None,None],['P12',0.005,'P1,P2','1,1']]),
+               Factory(factory_id='Factory2', produce_rate=[['P3',0.01,None,None],['P23',0.005,'P2,P3','1,1'],['A',0.005,'P12,P3','1,1']]),
+               Factory(factory_id='Factory3', produce_rate=[['P4',0.01,None,None],['B',0.005,'P23,P4','1,1']])
               ]
+    product = product_management(factory,lorry)
     '''
     execute the TraCI control loop
     run 86400 seconds (24 hours)
     '''
-    for _ in range(86400):
+    for time_step in range(86400):
         traci.simulationStep()
 
-        tmp_state = [lorry[i].refresh_state() for i in range(8)]
+        tmp_state = [lorry[i].refresh_state(time_step) for i in range(8)]
 
         # Produce product and develievery
-        for tmp_factory in factory:
-            tmp_factory.factory_step(lorry[0])
+        product.produce_load()
+        product.lorry_manage()
+        
 
     traci.close()
     # sys.stdout.flush()
