@@ -28,20 +28,23 @@ def run(eng,mdl:str):
     # Generate 8 lorries
     lorry = [Lorry(lorry_id=f'lorry_{i}', eng=eng, mdl=mdl) for i in range(8)]
     # Gendrate 4 Factories
-    factory = [Factory(factory_id='Factory0', produce_rate=[['P1',0.01,None,None]]),
-               Factory(factory_id='Factory1', produce_rate=[['P2',0.01,None,None],['P12',0.005,'P1,P2','1,1']]),
-               Factory(factory_id='Factory2', produce_rate=[['P3',0.01,None,None],['P23',0.005,'P2,P3','1,1'],['A',0.005,'P12,P3','1,1']]),
-               Factory(factory_id='Factory3', produce_rate=[['P4',0.01,None,None],['B',0.005,'P23,P4','1,1']])
+    factory = [Factory(factory_id='Factory0', produce_rate=[['P1',0.05,None,None]]),
+               Factory(factory_id='Factory1', produce_rate=[['P2',0.05,None,None],['P12',0.025,'P1,P2','1,1']]),
+               Factory(factory_id='Factory2', produce_rate=[['P3',0.05,None,None],['P23',0.025,'P2,P3','1,1'],['A',0.025,'P12,P3','1,1']]),
+               Factory(factory_id='Factory3', produce_rate=[['P4',0.05,None,None],['B',0.025,'P23,P4','1,1']])
               ]
     product = product_management(factory,lorry)
     '''
     execute the TraCI control loop
     run 86400 seconds (24 hours)
     '''
-    with open('result.txt','w') as f:
+    result_file = 'baseline_result.txt'
+    with open(result_file,'w') as f:
         f.write('time\tA\tB\tP12\tP23\n')
+    with open('baseline_lorry_record','w') as f:
+        f.write('time\tlorry id\tMDP\tstate\n')
 
-    for time_step in range(86400):
+    for time_step in range(86400*7):
         traci.simulationStep()
 
         tmp_state = [lorry[i].refresh_state(time_step) for i in range(8)]
@@ -49,13 +52,14 @@ def run(eng,mdl:str):
         # Produce product and develievery
         product.produce_load()
         product.lorry_manage()
-        if time_step % 500 == 0:
-            with open('result.txt','a') as f:
+        if time_step % 3600 == 0:
+            with open(result_file,'a') as f:
                 tmp_A = round(factory[2].product.loc['A','total'],3)
                 tmp_B = round(factory[3].product.loc['B','total'],3)
                 tmp_P12 = round(factory[1].product.loc['P12','total'],3)
                 tmp_P23 = round(factory[2].product.loc['P23','total'],3)
-                f.write(f'{time_step}\t{tmp_A}\t{tmp_B}\t{tmp_P12}\t{tmp_P23}\n')
+                tmp_time = round((time_step / 3600),1)
+                f.write(f'{tmp_time}\t{tmp_A}\t{tmp_B}\t{tmp_P12}\t{tmp_P23}\n')
                 print('s is:\n',product.s)
                 print('s1 is:\n',product.s1)
                 print('s2 is:\n',product.s2)

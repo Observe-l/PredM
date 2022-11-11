@@ -10,14 +10,14 @@ class Lorry(object):
     Function: updata health, move to some positon, fix or broken ...
     '''
     def __init__(self, lorry_id:str = 'lorry_0', capacity:float = 10.0, weight:float = 0.0,\
-                 state:str = 'delivery', position:str = 'Factory0', destination:str = 'Factory1', product:str = 'A', eng=None, mdl:str=None) -> None:
+                 state:str = 'delivery', position:str = 'Factory0', destination:str = 'Factory0', product:str = 'A', eng=None, mdl:str=None) -> None:
         '''
         Parameters:
         lorry_id: string
         capacity: The maximum capacity(t) of lorry. Default value is 10 t
         product: current loading product
         weight: Current weight of cargo(kg).
-        state: The job of the lorry. free, waitting, loading, pending, delivery, fixing, broken
+        state: The job of the lorry. free, waitting, loading, pending, delivery, repair, broken
         position: string
         destination: string
         '''
@@ -37,16 +37,25 @@ class Lorry(object):
         self.position = position
         self.destination = destination
         self.product = product
+        self.color = (255,255,0,255)
+        self.recover_state = 'waitting'
 
         # Markov state
         #    5 (lambda_0 = 0.013364)
         #0 1 2 3 4 (lambda_1=0.333442, lambda_m=0.653194)
         self.mk_state = 0
-        self.threshold1 = 0.013364
-        self.threshold2 = 1-0.333442
-        # Transfer the state every 8 minutes(480 seconds / sumo time)
-        self.state_trans = 480
+        lm_0 = 1/36
+        lm_1 = 1/6
+        self.threshold1 = lm_0
+        self.threshold2 = 1-lm_1
+        # Transfer the state after running 1 hour
+        self.state_trans = 3600
         self.step = 1
+
+        # recover after time_broken
+        self.time_broken = 86400 # 1 day
+        self.time_repair = 3600 *4 # 4 hours
+        self.frequency = 86400 # 1 day
 
         # Temporal repaired time step
         self.step_tmp = 0
@@ -79,7 +88,7 @@ class Lorry(object):
 
     
     def update_lorry(self, capacity:float = 10000.0, weight:float = 0.0,\
-                     state:str = 'delivery', position:str = 'Factory0', destination:str = 'Factory1') -> None:
+                     state:str = 'delivery', position:str = 'Factory0', destination:str = 'Factory0') -> None:
         '''
         update the parameters
         '''
@@ -95,18 +104,40 @@ class Lorry(object):
         get current state, refresh state
         '''
         # Check current location
-        parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
+        try:
+            parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
+        except:
+            traci.vehicle.add(vehID=self.id,routeID=self.destination + '_to_'+ self.destination, typeID='lorry')
+            traci.vehicle.setParkingAreaStop(vehID=self.id,stopID=self.destination)
+            traci.vehicle.setColor(typeID=self.id,color=self.color)
+            parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
+
+
         self.position = parking_state.stoppingPlaceID
         # Repair the engine
         if self.state == 'broken':
             self.step_tmp += 1
-            # Recover after 10 minutes (600 seconds)
-            if self.step_tmp % 600 == 0:
+            # Repair the lorry, spend 1 day
+            if self.step_tmp % self.time_broken == 0:
                 traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id),duration=0)
                 self.state = 'delivery'
                 self.mk_state = 0
                 self.step += 1
-                print(f'[Recover] {self.id}')
+                print(f'[recover] {self.id}')
+                with open('baseline_lorry_record','a') as f:
+                    f.write(f'{time_step}\t{self.id}\t\t{self.mk_state}\trecover after broken\n')
+        # mannually repair the engine
+        elif self.state == 'repair':
+            self.step_tmp +=1
+            if self.step_tmp % self.time_repair == 0:
+                traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id),duration=0)
+                self.state = self.recover_state
+                self.mk_state = 0
+                self.step += 1
+                print(f'[recover] {self.id}')
+                with open('baseline_lorry_record','a') as f:
+                    f.write(f'{time_step}\t{self.id}\t\t{self.mk_state}\trecover after repaired\n')
+
         elif parking_state.arrival < 0:
             self.state = 'delivery'
             self.step += 1
@@ -122,7 +153,8 @@ class Lorry(object):
             if self.mk_state == 4 or self.mk_state == 5:
                 print(f'[Broken] {self.id}')
                 self.state = 'broken'
-                # traci.vehicle.setSpeed(vehID=self.id, speed=0.0)
+                with open('baseline_lorry_record','a') as f:
+                    f.write(f'{time_step}\t{self.id}\t\t{self.mk_state}\tbroken\n')
                 try:
                     # stop after 20 meters barking
                     traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id)+25)
@@ -150,12 +182,14 @@ class Lorry(object):
             self.weight += weight
             self.state = 'loading'
             # RGBA
-            traci.vehicle.setColor(typeID=self.id,color=(0,0,255,255))
+            self.color = (0,0,255,255)
+            traci.vehicle.setColor(typeID=self.id,color=self.color)
             return ('successful', 0.0)
         else:
             self.weight = self.capacity
             self.state = 'pending for delivery'
-            traci.vehicle.setColor(typeID=self.id,color=(255,0,0,255))
+            self.color = (255,0,0,255)
+            traci.vehicle.setColor(typeID=self.id,color=self.color)
             return ('full', self.weight + weight - self.capacity)
     
     def delivery(self, destination:str) -> None:
@@ -177,7 +211,8 @@ class Lorry(object):
         Unload cargo. If lorry is empty, health become waitting.
         '''
         self.state = 'unloading'
-        traci.vehicle.setColor(typeID=self.id,color=(0,0,255,255))
+        self.color = (0,0,255,255)
+        traci.vehicle.setColor(typeID=self.id,color=self.color)
         if weight <= self.weight:
             self.weight -= weight
             return ('successful', 0.0)
@@ -185,8 +220,34 @@ class Lorry(object):
             remainning_weight = self.weight
             self.weight =0
             self.state = 'waitting'
-            traci.vehicle.setColor(typeID=self.id,color=(0,255,0,255))
+            self.color = (0,255,0,255)
+            traci.vehicle.setColor(typeID=self.id,color=self.color)
             return ('not enough', remainning_weight)
+    
+    def repaire(self,time_step):
+        if ((time_step+1) % self.frequency == 0) and self.state != 'broken':
+            self.mk_state = 0
+            self.step = 1
+            with open('baseline_lorry_record','a') as f:
+                f.write(f'{time_step}\t{self.id}\t\t{self.mk_state}\trepair\n')
+            # If the lorry is running, let it stop first
+            if self.state == 'delivery':
+                try:
+                    # stop after 20 meters barking
+                    traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id)+25)
+                except:
+                    # stop at next edge. the length of the edge must longer than 25m
+                    tmp_idx = traci.vehicle.getRouteIndex(vehID=self.id)
+                    try:
+                        tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx+1]
+                        traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=25)
+                    except:
+                        tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx+2]
+                        traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=0)
+            self.recover_state = self.state
+            self.state = 'repair'
+            print(f'[repair] {self.id} back to state {self.mk_state}')
+
     
     def MDP_model(self,time_step) -> None:
         '''

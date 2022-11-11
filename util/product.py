@@ -21,8 +21,8 @@ class product_management(object):
         '''
         self.factory = factory
         self.lorry = lorry
-        self.p = np.array([1.0,1.0,15.0,1.0,1.0])
-        self.et = 600
+        self.p = np.array([0.5,1.0,15.0,1.0,1.0])
+        self.et = 100
         self.s = 0
         self.s1 = 0
         self.s2 =0
@@ -60,7 +60,7 @@ class product_management(object):
             for item in tmp_product:
                 # print(item not in lorry_duplicate)
                 lorry_duplicate = [lorry.product for lorry in self.lorry if lorry.position == tmp_factory.id and lorry.state == 'loading']
-                if (tmp_factory.container.loc[item,'storage']/0.05 > 100) and (item not in lorry_duplicate) and (len(lorry_pool)>0):
+                if (tmp_factory.container.loc[item,'storage']/0.05 > 10) and (item not in lorry_duplicate) and (len(lorry_pool)>0):
                     tmp_result = tmp_factory.load_cargo(lorry_pool[0],item)
                     break
 
@@ -70,7 +70,9 @@ class product_management(object):
         s3 = np.zeros(len(self.factory))
         s3_pool = np.zeros(len(self.factory))
         # Only use normal lorry
-        lorry_count = np.array([i.position for i in self.lorry if i.state != 'broken'])
+        lorry_count = np.array([i.position for i in self.lorry if i.state != 'broken' and i.state != 'repair'])
+        if len(lorry_count) == 0:
+            lorry_count = np.array(['all broken'])
         n_lory = {'Factory0':np.count_nonzero(lorry_count=='Factory0'),
                   'Factory1':np.count_nonzero(lorry_count=='Factory1'),
                   'Factory2':np.count_nonzero(lorry_count=='Factory2'),
@@ -81,7 +83,7 @@ class product_management(object):
             tmp_product = self.product_idx[tmp_factory.id]
             if len(tmp_product) > 0:
                 tmp_storage = tmp_factory.container.loc[tmp_product,'storage'].max()
-                s1[m] = self.p[0] * min(tmp_storage,self.lorry[0].capacity)
+                s1[m] = self.p[0] * min(tmp_storage,10)
             else:
                 s1[m] = 0
             # Calculate s2
@@ -101,7 +103,7 @@ class product_management(object):
                     factory_idx = int([i for i in self.product_idx for item in self.product_idx[i] if item==tmp_m][0][-1])
                     product_slice = tmp_factory.product[tmp_factory.product['material'].str.contains(tmp_m) == True]
                     # get values
-                    tmp_param = min(tmp_factory.container.loc[tmp_m,'storage'], 0.8*self.lorry[0].capacity)
+                    tmp_param = min(tmp_factory.container.loc[tmp_m,'storage'], 10.0)
                     s2[m,factory_idx] += self.p[1]*(tmp_param - product_slice.iloc[0]['rate']*tmp_ratio[j]*self.et)
 
                 except:
@@ -118,7 +120,7 @@ class product_management(object):
         # Factory 4 doesn't need lorry
         # s[3] = 0
         # Generate the lorry pool
-        s_pool = (s1 + s2 + s3_pool<0)
+        s_pool = (s1 + s2 + s3_pool<=0)
         # lorry in the factory_idx could be assigned
         factory_idx = [self.factory[i].id for i in np.where(s_pool==True)[0]]
         lorry_pool = [i for i in self.lorry if i.position in factory_idx and i.state == 'waitting']
@@ -143,8 +145,8 @@ class product_management(object):
                     c[i] = traci.vehicle.getDrivingDistance(vehID=tmp_lorry.id, edgeID=factory_assign,pos=0)
                     traci.vehicle.changeTarget(vehID=tmp_lorry.id,edgeID=tmp_des)
             
-            print(f'[Assign] {lorry_pool[c.argmax()].id} relocates to {factory_assign}')
-            lorry_pool[c.argmax()].delivery(destination=factory_assign)
+            print(f'[Assign] {lorry_pool[c.argmin()].id} relocates to {factory_assign}')
+            lorry_pool[c.argmin()].delivery(destination=factory_assign)
             
 
 

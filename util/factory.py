@@ -10,7 +10,7 @@ class Factory(object):
     The class of factory
     '''
     def __init__(self, factory_id:str = 'Factory0', produce_rate:list = [['P1',0.0001,None,None]], 
-                 capacity:float=10000.0, container:list = ['P1','P2','P3','P4','P12','P23','A','B']) -> None:
+                 capacity:float=150.0, container:list = ['P1','P2','P3','P4','P12','P23','A','B']) -> None:
         '''
         Parameters:
         factory_id: string
@@ -25,7 +25,7 @@ class Factory(object):
         self.product['total'] = [0.0] * len(produce_rate)
         self.product.set_index(['product'],inplace=True)
         # The dataframe of the container
-        self.container = pd.DataFrame({'product':container, 'storage':[0.0]*len(container), 'capacity':[capacity] * len(container)})
+        self.container = pd.DataFrame({'product':container, 'storage':[0.0]*len(container), 'capacity':[capacity] * 4 + [60000] * 4})
         self.container.set_index(['product'],inplace=True)
 
         self.step = 0

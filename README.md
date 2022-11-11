@@ -75,7 +75,7 @@ Condition (Observation space):
 
 * Score of materials storage
 
-  $S_2=(min\{ms,lorry\_capacity\}-rate*ratio*E[t])*p_1$
+  $S_2=(min\{ms,p_5\}-rate*ratio*E[t]-m_{current})*p_1$
 
 * Score of lorry density
 
