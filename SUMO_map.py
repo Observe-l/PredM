@@ -38,6 +38,9 @@ def run(eng,mdl:str):
     execute the TraCI control loop
     run 86400 seconds (24 hours)
     '''
+    with open('result.txt','w') as f:
+        f.write('time\tA\tB\tP12\tP23\n')
+
     for time_step in range(86400):
         traci.simulationStep()
 
@@ -46,6 +49,18 @@ def run(eng,mdl:str):
         # Produce product and develievery
         product.produce_load()
         product.lorry_manage()
+        if time_step % 500 == 0:
+            with open('result.txt','a') as f:
+                tmp_A = round(factory[2].product.loc['A','total'],3)
+                tmp_B = round(factory[3].product.loc['B','total'],3)
+                tmp_P12 = round(factory[1].product.loc['P12','total'],3)
+                tmp_P23 = round(factory[2].product.loc['P23','total'],3)
+                f.write(f'{time_step}\t{tmp_A}\t{tmp_B}\t{tmp_P12}\t{tmp_P23}\n')
+                print('s is:\n',product.s)
+                print('s1 is:\n',product.s1)
+                print('s2 is:\n',product.s2)
+                print('s3 is:\n',product.s3)
+                
         
 
     traci.close()
@@ -92,7 +107,7 @@ if __name__ == "__main__":
     clutch = -1*np.ones(6,dtype=np.int64)
     eng.set_param(mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
     init_clutch = eng.get_param(mdl + '/[A B C D E F]', 'Value')
-    traci.start([sumoBinary, "-c", "map/SG_south_24h/osm.sumocfg","--threads","8"])
+    traci.start([sumoBinary, "-c", "map/3km_1week/osm.sumocfg","--threads","8"])
     # Connect to redpc
     # traci.init(port=45687,host='redpc')
 

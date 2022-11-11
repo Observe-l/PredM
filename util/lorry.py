@@ -106,6 +106,7 @@ class Lorry(object):
                 self.state = 'delivery'
                 self.mk_state = 0
                 self.step += 1
+                print(f'[Recover] {self.id}')
         elif parking_state.arrival < 0:
             self.state = 'delivery'
             self.step += 1
@@ -119,17 +120,22 @@ class Lorry(object):
         if self.state == 'delivery' and self.step % self.state_trans ==0:
             self.MDP_model(time_step)
             if self.mk_state == 4 or self.mk_state == 5:
-                print(f'{self.id} is broken')
+                print(f'[Broken] {self.id}')
                 self.state = 'broken'
                 # traci.vehicle.setSpeed(vehID=self.id, speed=0.0)
                 try:
                     # stop after 20 meters barking
-                    traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id)+20)
+                    traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id)+25)
                 except:
-                    # stop at next edge. the length of the edge must longer than 20m
+                    # stop at next edge. the length of the edge must longer than 25m
                     tmp_idx = traci.vehicle.getRouteIndex(vehID=self.id)
-                    tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx]
-                    traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=20)
+                    try:
+                        tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx+1]
+                        traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=25)
+                    except:
+                        tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx+2]
+                        traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=0)
+
                 
         return {'state':self.state, 'postion':self.position}
     
@@ -164,7 +170,7 @@ class Lorry(object):
         traci.vehicle.setParkingAreaStop(vehID=self.id, stopID=self.position, duration=0)
         # Stop at next parking area
         traci.vehicle.setParkingAreaStop(vehID=self.id, stopID=self.destination)
-        print(f'{self.id} move from {self.position} to {self.destination}')
+        print(f'[move] {self.id} move from {self.position} to {self.destination}')
     
     def unload_cargo(self, weight:float) -> tuple[str, float]:
         '''
@@ -209,7 +215,7 @@ class Lorry(object):
                 self.mk_state = self.mk_state
         else:
             self.mk_state = self.mk_state
-        print(f'{self.id} state: {self.mk_state}')
+        print(f'[MDP state] {self.id} state: {self.mk_state}')
         
         # Clutch fault injection
         if self.mk_state == 0:

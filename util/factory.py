@@ -22,6 +22,7 @@ class Factory(object):
 
         # Create a dataframe to record the products which are produced in current factory
         self.product= pd.DataFrame(produce_rate,columns=['product','rate','material','ratio'])
+        self.product['total'] = [0.0] * len(produce_rate)
         self.product.set_index(['product'],inplace=True)
         # The dataframe of the container
         self.container = pd.DataFrame({'product':container, 'storage':[0.0]*len(container), 'capacity':[capacity] * len(container)})
@@ -50,11 +51,13 @@ class Factory(object):
                         self.container.at[tmp_materials[i],'storage'] = self.container.loc[tmp_materials[i],'storage'] - item_num * tmp_ratio[i]
                     # Produce new product
                     self.container.at[index,'storage'] = self.container.loc[index,'storage'] + item_num
+                    self.product.at[index,'total'] = self.product.loc[index,'total'] + item_num
 
             # no need any materials
             except:
                 # Produce directly
                 self.container.at[index,'storage'] = self.container.loc[index,'storage'] + self.product.loc[index,'rate']
+                self.product.at[index,'total'] = self.product.loc[index,'total'] + self.product.loc[index,'rate']
     
     def load_cargo(self, lorry:Lorry, product:str) -> str:
         '''
@@ -65,7 +68,7 @@ class Factory(object):
         if self.id in lorry.position and (lorry.state == 'waitting' or lorry.state == 'loading') and self.container.loc[product,'storage'] != 0:
             if lorry.state == 'waitting':
                 # Print when startting loading
-                print(f'{lorry.id} start loading cargo at:{self.id}')
+                print(f'[loading] {lorry.id} start loading {product} at:{self.id}')
             # Maximum loading speed: 0.05 t/s
             load_weight = min(0.05, self.container.loc[product,'storage'])
             lorry_state, exceed_cargo =  lorry.load_cargo(weight=load_weight, product= product)
@@ -76,10 +79,10 @@ class Factory(object):
         '''
         Unload cargo to container
         '''
-        if self.id in lorry.position and (lorry.state == 'pending for unloading' or lorry.state == 'unloading') and self.container.loc[lorry.product,'storage'] < 0:
+        if self.id in lorry.position and (lorry.state == 'pending for unloading' or lorry.state == 'unloading') and self.container.loc[lorry.product,'storage'] < self.container.loc[lorry.product,'capacity']:
             if lorry.state == 'pending for unloading':
                 # Print when startting unloading
-                print(f'{lorry.id} start unloading at:{self.id}')
+                print(f'[unloading] {lorry.id} start unloading {lorry.product} at:{self.id}')
             # Maximum loading speed: 0.05 t/s
             unload_weight = min(0.05, self.container.loc[lorry.product,'capacity'] - self.container.loc[lorry.product,'storage'])
             lorry_state, exceed_cargo = lorry.unload_cargo(unload_weight)

@@ -75,7 +75,7 @@ Condition (Observation space):
 
 * Score of materials storage
 
-  $S_2=(ms-rate*ratio*E[t])p_1$
+  $S_2=(min\{ms,lorry\_capacity\}-rate*ratio*E[t])*p_1$
 
 * Score of lorry density
 
@@ -106,3 +106,5 @@ Condition (Observation space):
   $C=C_1*C_2$
 
 **Remark:** The score should be recalculated whenever a new lorry arrives or departs.
+
+factory 4 no need lorry
