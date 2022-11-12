@@ -27,6 +27,7 @@ class Factory(object):
         # The dataframe of the container
         self.container = pd.DataFrame({'product':container, 'storage':[0.0]*len(container), 'capacity':[capacity] * 4 + [60000] * 4})
         self.container.set_index(['product'],inplace=True)
+        self.container.at['P2','capacity'] = 2*capacity
 
         self.step = 0
     
@@ -37,27 +38,30 @@ class Factory(object):
         # Iterate all the product
         for index, row in self.product.iterrows():
             # Check the materials in the container
-            try:
-                tmp_materials = row['material'].split(',')
+            tmp_rate = row['rate']
+            # Storage shouldn't exceed capacity
+            item_num = min(tmp_rate,self.container.loc[index,'capacity'] - self.container.loc[index,'storage'])
+            item_num = max(item_num, 0)
+            tmp_materials = row['material']
+            if type(tmp_materials) == str:
+                tmp_materials = tmp_materials.split(',')
                 tmp_ratio = np.array(row['ratio'].split(','),dtype=np.float64)
 
                 tmp_storage = self.container.loc[tmp_materials,'storage'].to_numpy()
                 # Check storage
-                if (tmp_storage > tmp_ratio).all():
-                    # Storage shouldn't exceed capacity
-                    item_num = min(self.product.loc[index,'rate'],self.container.loc[index,'capacity'] - self.container.loc[index,'storage'])
+                if (tmp_storage > tmp_ratio*tmp_rate).all() and self.container.loc[index,'capacity'] > self.container.loc[index,'storage']:
                     # Consume the material
-                    for i in len(tmp_materials):
+                    for i in range(len(tmp_materials)):
                         self.container.at[tmp_materials[i],'storage'] = self.container.loc[tmp_materials[i],'storage'] - item_num * tmp_ratio[i]
                     # Produce new product
                     self.container.at[index,'storage'] = self.container.loc[index,'storage'] + item_num
                     self.product.at[index,'total'] = self.product.loc[index,'total'] + item_num
 
             # no need any materials
-            except:
+            else:
                 # Produce directly
-                self.container.at[index,'storage'] = self.container.loc[index,'storage'] + self.product.loc[index,'rate']
-                self.product.at[index,'total'] = self.product.loc[index,'total'] + self.product.loc[index,'rate']
+                self.container.at[index,'storage'] = self.container.loc[index,'storage'] + item_num
+                self.product.at[index,'total'] = self.product.loc[index,'total'] + item_num
     
     def load_cargo(self, lorry:Lorry, product:str) -> str:
         '''

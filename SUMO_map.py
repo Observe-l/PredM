@@ -1,5 +1,7 @@
 import sys
 import optparse
+from csv import writer
+
 import matlab.engine as engine
 
 import os
@@ -12,7 +14,6 @@ from util.lorry import Lorry
 from util.factory import Factory
 from util.product import product_management
 
-PARK_CAPACITY = 4
 
 # we need to import python modules from the $SUMO_HOME/tools directory
 if 'SUMO_HOME' in os.environ:
@@ -29,7 +30,7 @@ def run(eng,mdl:str):
     lorry = [Lorry(lorry_id=f'lorry_{i}', eng=eng, mdl=mdl) for i in range(8)]
     # Gendrate 4 Factories
     factory = [Factory(factory_id='Factory0', produce_rate=[['P1',0.05,None,None]]),
-               Factory(factory_id='Factory1', produce_rate=[['P2',0.05,None,None],['P12',0.025,'P1,P2','1,1']]),
+               Factory(factory_id='Factory1', produce_rate=[['P2',0.1,None,None],['P12',0.025,'P1,P2','1,1']]),
                Factory(factory_id='Factory2', produce_rate=[['P3',0.05,None,None],['P23',0.025,'P2,P3','1,1'],['A',0.025,'P12,P3','1,1']]),
                Factory(factory_id='Factory3', produce_rate=[['P4',0.05,None,None],['B',0.025,'P23,P4','1,1']])
               ]
@@ -38,11 +39,15 @@ def run(eng,mdl:str):
     execute the TraCI control loop
     run 86400 seconds (24 hours)
     '''
-    result_file = 'baseline_result.txt'
+    result_file = 'baseline_result.csv'
     with open(result_file,'w') as f:
-        f.write('time\tA\tB\tP12\tP23\n')
-    with open('baseline_lorry_record','w') as f:
-        f.write('time\tlorry id\tMDP\tstate\n')
+        f_csv = writer(f)
+        f_csv.writerow(['time','A','B','P12','P23'])
+        # f.write('time\tA\tB\tP12\tP23\n')
+    with open('baseline_lorry_record.csv','w') as f:
+        f_csv = writer(f)
+        f_csv.writerow(['time','lorry id','MDP','state'])
+        # f.write('time\tlorry id\tMDP\tstate\n')
 
     for time_step in range(86400*7):
         traci.simulationStep()
@@ -52,20 +57,25 @@ def run(eng,mdl:str):
         # Produce product and develievery
         product.produce_load()
         product.lorry_manage()
-        if time_step % 3600 == 0:
+        # record every 1 min
+        if time_step % 60 == 0:
             with open(result_file,'a') as f:
+                f_csv = writer(f)
                 tmp_A = round(factory[2].product.loc['A','total'],3)
                 tmp_B = round(factory[3].product.loc['B','total'],3)
                 tmp_P12 = round(factory[1].product.loc['P12','total'],3)
                 tmp_P23 = round(factory[2].product.loc['P23','total'],3)
-                tmp_time = round((time_step / 3600),1)
-                f.write(f'{tmp_time}\t{tmp_A}\t{tmp_B}\t{tmp_P12}\t{tmp_P23}\n')
+                tmp_time = round((time_step / 3600),3)
+                f_csv.writerow([tmp_time,tmp_A,tmp_B,tmp_P12,tmp_P23])
+                # f.write(f'{tmp_time}\t{tmp_A}\t{tmp_B}\t{tmp_P12}\t{tmp_P23}\n')
+
+            # print every 5 min
+            if time_step % 300 == 0:
                 print('s is:\n',product.s)
                 print('s1 is:\n',product.s1)
                 print('s2 is:\n',product.s2)
-                print('s3 is:\n',product.s3)
-                
-        
+            # if time_step > 2000:
+            #     print(factory[1].container)
 
     traci.close()
     # sys.stdout.flush()
