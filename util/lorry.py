@@ -10,7 +10,7 @@ class Lorry(object):
     Parameters: lorry ID, health, position, destination ...
     Function: updata health, move to some positon, fix or broken ...
     '''
-    def __init__(self, lorry_id:str = 'lorry_0', capacity:float = 10.0, weight:float = 0.0,\
+    def __init__(self, lorry_id:str = 'lorry_0', capacity:float = 2.0, weight:float = 0.0,\
                  state:str = 'delivery', position:str = 'Factory0', destination:str = 'Factory0', product:str = 'A', eng=None, mdl:str=None) -> None:
         '''
         Parameters:

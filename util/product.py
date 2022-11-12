@@ -21,7 +21,7 @@ class product_management(object):
         '''
         self.factory = factory
         self.lorry = lorry
-        self.p = np.array([1.0, 1.0, 1.0, 1.0, 10.0])
+        self.p = np.array([1.0, 1.0, 1.0, 1.0, 2.0])
         self.et = 100
         self.s = 0
         self.s1 = 0

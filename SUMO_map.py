@@ -127,7 +127,7 @@ if __name__ == "__main__":
     clutch = -1*np.ones(6,dtype=np.int64)
     eng.set_param(mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
     init_clutch = eng.get_param(mdl + '/[A B C D E F]', 'Value')
-    traci.start([sumoBinary, "-c", "map/3km_1week/osm.sumocfg","--threads","8"])
+    traci.start([sumoBinary, "-c", "map/3km_1week/osm.sumocfg","--threads","6"])
     # Connect to redpc
     # traci.init(port=45687,host='redpc')
 
