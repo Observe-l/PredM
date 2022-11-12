@@ -46,7 +46,7 @@ class Lorry(object):
         #0 1 2 3 4 (lambda_1=0.333442, lambda_m=0.653194)
         self.mk_state = 0
         lm_0 = 1/120
-        lm_1 = 1/6
+        lm_1 = 1/12
         self.threshold1 = lm_0
         self.threshold2 = 1-lm_1
         # Transfer the state after running 1 hour
