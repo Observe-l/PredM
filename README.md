@@ -57,6 +57,20 @@ Each MDP state corresponding to a clutch fault state:
 | Daily    | 4 hours everyday  (back to state 0), breakdown: 1 day to repair |
 | PARL     | 4 hours (back to state 0), breakdown: 1 day to repair        |
 
+| parameter                         | values                         |
+| --------------------------------- | ------------------------------ |
+| no. lorry                         | 4                              |
+| $E(\textrm{random failure})$      | $120$ hours                    |
+| $E(\textrm{degradation failure})$ | $24$ hours                     |
+| Factory 0                         | P1                             |
+| Factory 1                         | P2, P12 (P1 & P2)              |
+| Factory 2                         | P3, P23 (P2 & P3), A(P12 & P3) |
+| Factory 3                         | P4, B(P23 & P4)                |
+| distance between factories        | 2.5 km ~ 3 km                  |
+| max speed                         | 16.67 m/s (60 kph)             |
+
+
+
 ### Lorry management
 
 Condition (Observation space):
@@ -69,27 +83,32 @@ Condition (Observation space):
 
 #### Step 1: Calculate the score for each factory. The greater the score, the more lorries are required.
 
-* Score of current product storage
+* Assume a product $P1$ is produced in $Factory\,A$  and will be consumed at $Factory\,B$
 
-  $S_1=p_0*min\{m_p,lorry\_capacity\}$
+  $m_i=min\{m_{AP1},3*lorry\, capacity\} - (m_{BP1}+m_{lorry\_P1})$
 
-* Score of materials storage
+  $S1[i]=p_i*m_i$
 
-  $S_2=(min\{ms,p_5\}-rate*ratio*E[t]-m_{current})*p_1$
+  In terms of $Factory\,1$:
+
+  $m_{1_1}=min\{m_{BP2}-m_{BP1},3*lorry\, capacity\}-(m_{CP2}+m_{lorry\_P2})$
+
+  $m_{1_2}=min\{m_{BP12},3*lorry\, capacity\}-(m_{CP12}+m_{lorry\_P12})$
+
+  $S1[1]=p_1*m_{1_1}+p_2*m_{1_2}$
 
 * Score of lorry density
 
-  $S_3=-n_{lorry}*p_2$
+  $S_2=-n_{lorry}*p_{n+1}$
 
 * Sum up the scores
 
-  $S =S_1+S_2+S_3 $
+  $S =S_1+S_2$
 
 **Remark**:
 
-1. The material of one product is the product produced in other factories. So, $S_2$ should get from other factories.
-2. Design $p_2$ properly, only when $S>0$, the factory need new lorry.
-3. Lorry pool: when $n^{'}=n_{lorry}-1$, $S$ is still a positive value.
+1. Design $p$ properly, only when $S>0$, the factory need new lorry.
+2. Lorry pool: when $n^{'}=n_{lorry}-1$, $S$ is still a positive value.
 
 #### Step 2: Assign the lorry 
 
@@ -106,5 +125,3 @@ Condition (Observation space):
   $C=C_1*C_2$
 
 **Remark:** The score should be recalculated whenever a new lorry arrives or departs.
-
-factory 4 no need lorry

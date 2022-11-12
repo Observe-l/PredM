@@ -45,7 +45,7 @@ class Lorry(object):
         #    5 (lambda_0 = 0.013364)
         #0 1 2 3 4 (lambda_1=0.333442, lambda_m=0.653194)
         self.mk_state = 0
-        lm_0 = 1/36
+        lm_0 = 1/120
         lm_1 = 1/6
         self.threshold1 = lm_0
         self.threshold2 = 1-lm_1
@@ -55,7 +55,7 @@ class Lorry(object):
 
         # recover after time_broken
         self.time_broken = 86400 # 1 day
-        self.time_repair = 3600 *4 # 4 hours
+        self.time_repair = 3600 * 4 # 4 hours
         self.frequency = 86400 # 1 day
 
         # Temporal repaired time step
@@ -100,7 +100,7 @@ class Lorry(object):
         self.position = position
         self.destination = destination
 
-    def refresh_state(self,time_step) -> dict:
+    def refresh_state(self,time_step, repair_flag) -> dict:
         '''
         get current state, refresh state
         '''
@@ -113,36 +113,33 @@ class Lorry(object):
             traci.vehicle.setColor(typeID=self.id,color=self.color)
             parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
 
-
         self.position = parking_state.stoppingPlaceID
         # Repair the engine
+        if repair_flag:
+            self.repair(time_step)
         if self.state == 'broken':
             self.step_tmp += 1
             # Repair the lorry, spend 1 day
             if self.step_tmp % self.time_broken == 0:
-                if self.recover_state == 'delivery':
-                    traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id),duration=0)
                 self.state = self.recover_state
                 self.mk_state = 0
                 self.step += 1
                 print(f'[recover] {self.id}')
-                with open('baseline_lorry_record.csv','a') as f:
+                with open('lorry_record.csv','a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([time_step,self.id,self.mk_state,'recover after broken'])
-                    # f.write(f'{time_step}\t{self.id}\t\t{self.mk_state}\trecover after broken\n')
+
         # mannually repair the engine
         elif self.state == 'repair':
             self.step_tmp +=1
             if self.step_tmp % self.time_repair == 0:
-                traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id),duration=0)
                 self.state = self.recover_state
                 self.mk_state = 0
                 self.step += 1
                 print(f'[recover] {self.id}')
-                with open('baseline_lorry_record.csv','a') as f:
+                with open('lorry_record.csv','a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([time_step,self.id,self.mk_state,'recover after repaired'])
-                    # f.write(f'{time_step}\t{self.id}\t\t{self.mk_state}\trecover after repaired\n')
 
         elif parking_state.arrival < 0:
             self.state = 'delivery'
@@ -159,10 +156,9 @@ class Lorry(object):
             if self.mk_state == 4 or self.mk_state == 5:
                 print(f'[Broken] {self.id}')
                 self.state = 'broken'
-                with open('baseline_lorry_record.csv','a') as f:
+                with open('lorry_record.csv','a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([time_step,self.id,self.mk_state,'broken'])
-                    # f.write(f'{time_step}\t{self.id}\t\t{self.mk_state}\tbroken\n')
                 # The lorry shouldn't break at factory road, otherwise, let it move to the end of the road
                 current_edge = traci.vehicle.getRoadID(vehID=self.id)
                 factory_idx = ['Factory0','Factory1','Factory2','Factory3']
@@ -177,26 +173,26 @@ class Lorry(object):
                     self.recover_state = 'delivery'
                     try:
                         # stop after 20 meters barking
-                        traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=150)
+                        traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=150,duration = self.time_broken)
                     except:
                         # stop at next edge. the length of the edge must longer than 25m
                         tmp_idx = traci.vehicle.getRouteIndex(vehID=self.id)
                         tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx+2]
-                        traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=0)
+                        traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=0, duration = self.time_broken)
                 else:
                     self.recover_state = 'delivery'
                     try:
                         # stop after 20 meters barking
-                        traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id)+25)
+                        traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id)+25, duration = self.time_broken)
                     except:
                         # stop at next edge. the length of the edge must longer than 25m
                         tmp_idx = traci.vehicle.getRouteIndex(vehID=self.id)
                         try:
                             tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx+1]
-                            traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=25)
+                            traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=25, duration = self.time_broken)
                         except:
                             tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx+2]
-                            traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=0)
+                            traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=0, duration = self.time_broken)
 
                 
         return {'state':self.state, 'postion':self.position}
@@ -254,28 +250,27 @@ class Lorry(object):
             traci.vehicle.setColor(typeID=self.id,color=self.color)
             return ('not enough', remainning_weight)
     
-    def repaire(self,time_step):
+    def repair(self,time_step):
         if ((time_step+1) % self.frequency == 0) and self.state != 'broken':
             self.mk_state = 0
             self.step = 1
-            with open('baseline_lorry_record.csv','a') as f:
+            with open('lorry_record.csv','a') as f:
                 f_csv = writer(f)
                 f_csv.writerow([time_step,self.id,self.mk_state,'repairing'])
-                # f.write(f'{time_step}\t{self.id}\t\t{self.mk_state}\trepair\n')
             # If the lorry is running, let it stop first
             if self.state == 'delivery':
                 try:
                     # stop after 20 meters barking
-                    traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id)+25)
+                    traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id)+25, duration = self.time_repair)
                 except:
                     # stop at next edge. the length of the edge must longer than 25m
                     tmp_idx = traci.vehicle.getRouteIndex(vehID=self.id)
                     try:
                         tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx+1]
-                        traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=25)
+                        traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=25, duration = self.time_repair)
                     except:
                         tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx+2]
-                        traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=0)
+                        traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=0, duration = self.time_repair)
             self.recover_state = self.state
             self.state = 'repair'
             print(f'[repair] {self.id} back to state {self.mk_state}')

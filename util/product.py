@@ -63,14 +63,14 @@ class product_management(object):
                 # loading the product with max storage
                 item = self.factory[2].container.loc[tmp_product,'storage'].idxmin()
                 item_bak = [i for i in tmp_product if i != item][0]
-                if (tmp_factory.container.loc[item,'storage']/0.05 > 10) and (item not in lorry_duplicate) and (len(lorry_pool)>0):
+                if (tmp_factory.container.loc[item,'storage'] > self.lorry[0].capacity) and (item not in lorry_duplicate) and (len(lorry_pool)>0):
                     tmp_result = tmp_factory.load_cargo(lorry_pool[0],item)
-                elif (tmp_factory.container.loc[item_bak,'storage']/0.05 > 10) and (item_bak not in lorry_duplicate) and (len(lorry_pool)>0):
+                elif (tmp_factory.container.loc[item_bak,'storage'] > self.lorry[0].capacity) and (item_bak not in lorry_duplicate) and (len(lorry_pool)>0):
                     tmp_result = tmp_factory.load_cargo(lorry_pool[0],item_bak)
 
             elif len(tmp_product) == 1:
                 item = tmp_product[0]
-                if (tmp_factory.container.loc[item,'storage']/0.05 > 10) and (item not in lorry_duplicate) and (len(lorry_pool)>0):
+                if (tmp_factory.container.loc[item,'storage'] > self.lorry[0].capacity) and (item not in lorry_duplicate) and (len(lorry_pool)>0):
                     tmp_result = tmp_factory.load_cargo(lorry_pool[0],item)
 
     def lorry_manage(self) -> None:
@@ -84,10 +84,14 @@ class product_management(object):
                   'Factory2':np.count_nonzero(lorry_count=='Factory2'),
                   'Factory3':np.count_nonzero(lorry_count=='Factory3')}
         
-        lorry_p1 = np.sum([i.weight for i in self.lorry if i.product == 'P1' and i.state != 'broken' and i.state != 'repair'])
-        lorry_p2 = np.sum([i.weight for i in self.lorry if i.product == 'P2' and i.state != 'broken' and i.state != 'repair'])
-        lorry_p12 = np.sum([i.weight for i in self.lorry if i.product == 'P12' and i.state != 'broken' and i.state != 'repair'])
-        lorry_p23 = np.sum([i.weight for i in self.lorry if i.product == 'P23' and i.state != 'broken' and i.state != 'repair'])
+        # lorry_p1 = np.sum([i.weight for i in self.lorry if i.product == 'P1' and i.state != 'broken' and i.state != 'repair'])
+        # lorry_p2 = np.sum([i.weight for i in self.lorry if i.product == 'P2' and i.state != 'broken' and i.state != 'repair'])
+        # lorry_p12 = np.sum([i.weight for i in self.lorry if i.product == 'P12' and i.state != 'broken' and i.state != 'repair'])
+        # lorry_p23 = np.sum([i.weight for i in self.lorry if i.product == 'P23' and i.state != 'broken' and i.state != 'repair'])
+        lorry_p1 = np.sum([i.weight for i in self.lorry if i.product == 'P1' and i.state == 'delivery'])
+        lorry_p2 = np.sum([i.weight for i in self.lorry if i.product == 'P2' and i.state == 'delivery'])
+        lorry_p12 = np.sum([i.weight for i in self.lorry if i.product == 'P12' and i.state == 'delivery'])
+        lorry_p23 = np.sum([i.weight for i in self.lorry if i.product == 'P23' and i.state == 'delivery'])
 
         mA = min(self.factory[0].container.loc['P1','storage'], 3*self.lorry[0].capacity) - (self.factory[1].container.loc['P1','storage'] + lorry_p1)
         s1[0] = self.p[0] * mA

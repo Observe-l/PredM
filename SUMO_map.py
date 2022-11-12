@@ -25,9 +25,10 @@ else:
 from sumolib import checkBinary
 import traci
 
-def run(eng,mdl:str):
+def run(eng,mdl:str,repair_flag:bool):
     # Generate 8 lorries
-    lorry = [Lorry(lorry_id=f'lorry_{i}', eng=eng, mdl=mdl) for i in range(8)]
+    lorry_num = 4
+    lorry = [Lorry(lorry_id=f'lorry_{i}', eng=eng, mdl=mdl) for i in range(lorry_num)]
     # Gendrate 4 Factories
     factory = [Factory(factory_id='Factory0', produce_rate=[['P1',0.05,None,None]]),
                Factory(factory_id='Factory1', produce_rate=[['P2',0.1,None,None],['P12',0.025,'P1,P2','1,1']]),
@@ -39,20 +40,18 @@ def run(eng,mdl:str):
     execute the TraCI control loop
     run 86400 seconds (24 hours)
     '''
-    result_file = 'baseline_result.csv'
+    result_file = 'result.csv'
     with open(result_file,'w') as f:
         f_csv = writer(f)
-        f_csv.writerow(['time','A','B','P12','P23'])
-        # f.write('time\tA\tB\tP12\tP23\n')
-    with open('baseline_lorry_record.csv','w') as f:
+        f_csv.writerow(['time','A','B','P12','P23','current_lorry'])
+    with open('lorry_record.csv','w') as f:
         f_csv = writer(f)
         f_csv.writerow(['time','lorry id','MDP','state'])
-        # f.write('time\tlorry id\tMDP\tstate\n')
 
     for time_step in range(86400*7):
         traci.simulationStep()
 
-        tmp_state = [lorry[i].refresh_state(time_step) for i in range(8)]
+        tmp_state = [lorry[i].refresh_state(time_step,repair_flag) for i in range(lorry_num)]
 
         # Produce product and develievery
         product.produce_load()
@@ -65,8 +64,9 @@ def run(eng,mdl:str):
                 tmp_B = round(factory[3].product.loc['B','total'],3)
                 tmp_P12 = round(factory[1].product.loc['P12','total'],3)
                 tmp_P23 = round(factory[2].product.loc['P23','total'],3)
+                tmp_lorry = len([i for i in lorry if i.state != 'broken' and i.state != 'repair'])
                 tmp_time = round((time_step / 3600),3)
-                f_csv.writerow([tmp_time,tmp_A,tmp_B,tmp_P12,tmp_P23])
+                f_csv.writerow([tmp_time,tmp_A,tmp_B,tmp_P12,tmp_P23,tmp_lorry])
                 # f.write(f'{tmp_time}\t{tmp_A}\t{tmp_B}\t{tmp_P12}\t{tmp_P23}\n')
 
             # print every 5 min
@@ -74,6 +74,7 @@ def run(eng,mdl:str):
                 print('s is:\n',product.s)
                 print('s1 is:\n',product.s1)
                 print('s2 is:\n',product.s2)
+                print(f'current time: {time_step}')
             # if time_step > 2000:
             #     print(factory[1].container)
 
@@ -84,7 +85,7 @@ def get_options():
     optParser = optparse.OptionParser()
     optParser.add_option("--nogui", action="store_true",
                          default=False, help="run the commandline version of sumo")
-    optParser.add_option("--share_engine", action="store_true",
+    optParser.add_option("--repair", action="store_true",
                          default=False, help="connect to matlab engine")
     options, args = optParser.parse_args()
     return options
@@ -100,7 +101,12 @@ if __name__ == "__main__":
         sumoBinary = checkBinary('sumo')
     else:
         sumoBinary = checkBinary('sumo-gui')
-
+    if options.repair:
+        repair_flag = True
+        print('repair engine every day')
+    else:
+        repair_flag = False
+        print('baseline')
     eng = engine.connect_matlab()
     try:
         stop_time = eng.evalin('base', 'Tend')
@@ -128,7 +134,7 @@ if __name__ == "__main__":
     # Reload sumo map
     # traci.load(["-c", "map/SG_south_24h/osm.sumocfg","--threads","8"])
     
-    run(eng,mdl)
+    run(eng,mdl,repair_flag)
     eng.quit()
 
 
