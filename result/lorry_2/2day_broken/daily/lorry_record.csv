@@ -1,0 +1,55 @@
+time,lorry id,MDP,state
+37080,lorry_1,5,broken
+86399,lorry_0,0,repairing
+86399,lorry_2,0,repairing
+86399,lorry_3,0,repairing
+100798,lorry_0,0,recover after repaired
+100798,lorry_2,0,recover after repaired
+100798,lorry_3,0,recover after repaired
+123480,lorry_1,0,recover after broken
+172799,lorry_0,0,repairing
+172799,lorry_1,0,repairing
+172799,lorry_2,0,repairing
+172799,lorry_3,0,repairing
+187198,lorry_0,0,recover after repaired
+187198,lorry_1,0,recover after repaired
+187198,lorry_2,0,recover after repaired
+187198,lorry_3,0,recover after repaired
+259033,lorry_0,5,broken
+259199,lorry_1,0,repairing
+259199,lorry_2,0,repairing
+259199,lorry_3,0,repairing
+273598,lorry_1,0,recover after repaired
+273598,lorry_2,0,recover after repaired
+273598,lorry_3,0,recover after repaired
+316633,lorry_0,0,recover after broken
+344177,lorry_1,5,broken
+345599,lorry_0,0,repairing
+345599,lorry_2,0,repairing
+345599,lorry_3,0,repairing
+359998,lorry_0,0,recover after repaired
+359998,lorry_2,0,recover after repaired
+359998,lorry_3,0,recover after repaired
+364091,lorry_2,5,broken
+392891,lorry_2,0,recover after broken
+401777,lorry_1,0,recover after broken
+431999,lorry_0,0,repairing
+431999,lorry_1,0,repairing
+431999,lorry_2,0,repairing
+431999,lorry_3,0,repairing
+446398,lorry_0,0,recover after repaired
+446398,lorry_1,0,recover after repaired
+446398,lorry_2,0,recover after repaired
+446398,lorry_3,0,recover after repaired
+518399,lorry_0,0,repairing
+518399,lorry_1,0,repairing
+518399,lorry_2,0,repairing
+518399,lorry_3,0,repairing
+532798,lorry_0,0,recover after repaired
+532798,lorry_1,0,recover after repaired
+532798,lorry_2,0,recover after repaired
+532798,lorry_3,0,recover after repaired
+604799,lorry_0,0,repairing
+604799,lorry_1,0,repairing
+604799,lorry_2,0,repairing
+604799,lorry_3,0,repairing

@@ -1,0 +1,20 @@
+time,lorry id,MDP,state
+33394,lorry_2,5,broken
+95987,lorry_0,4,broken
+119794,lorry_2,0,recover after broken
+132371,lorry_2,5,broken
+154650,lorry_1,4,broken
+182387,lorry_0,0,recover after broken
+218771,lorry_2,0,recover after broken
+241050,lorry_1,0,recover after broken
+246740,lorry_3,4,broken
+274673,lorry_0,4,broken
+333140,lorry_3,0,recover after broken
+361073,lorry_0,0,recover after broken
+420101,lorry_1,4,broken
+448979,lorry_2,4,broken
+506501,lorry_1,0,recover after broken
+535379,lorry_2,0,recover after broken
+536358,lorry_0,5,broken
+551188,lorry_3,4,broken
+601069,lorry_1,4,broken
