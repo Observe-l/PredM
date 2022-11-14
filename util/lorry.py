@@ -11,7 +11,8 @@ class Lorry(object):
     Function: updata health, move to some positon, fix or broken ...
     '''
     def __init__(self, lorry_id:str = 'lorry_0', capacity:float = 2.0, weight:float = 0.0,\
-                 state:str = 'delivery', position:str = 'Factory0', destination:str = 'Factory0', product:str = 'A', eng=None, mdl:str=None) -> None:
+                 state:str = 'delivery', position:str = 'Factory0', destination:str = 'Factory0', product:str = 'A', eng=None, mdl:str=None,
+                 path:str = 'result', time_broken:int = 86400, labmda1:float = 1/6) -> None:
         '''
         Parameters:
         lorry_id: string
@@ -45,8 +46,8 @@ class Lorry(object):
         #    5 (lambda_0 = 0.013364)
         #0 1 2 3 4 (lambda_1=0.333442, lambda_m=0.653194)
         self.mk_state = 0
-        lm_0 = 1/120
-        lm_1 = 1/12
+        lm_0 = 1/240
+        lm_1 = labmda1
         self.threshold1 = lm_0
         self.threshold2 = 1-lm_1
         # Transfer the state after running 1 hour
@@ -54,7 +55,7 @@ class Lorry(object):
         self.step = 1
 
         # recover after time_broken
-        self.time_broken = 86400 # 1 day
+        self.time_broken = time_broken # 1 day
         self.time_repair = 3600 * 4 # 4 hours
         self.frequency = 86400 # 1 day
 
@@ -63,6 +64,7 @@ class Lorry(object):
 
 
         self.actual_dr, self.expected_dr, self.actual_speed, self.expected_speed = np.zeros(4)
+        self.path = path + '/lorry_record.csv'
 
         # matlab engine
         self.eng = eng
@@ -125,7 +127,7 @@ class Lorry(object):
                 self.mk_state = 0
                 self.step += 1
                 print(f'[recover] {self.id}')
-                with open('lorry_record.csv','a') as f:
+                with open(self.path,'a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([time_step,self.id,self.mk_state,'recover after broken'])
 
@@ -137,7 +139,7 @@ class Lorry(object):
                 self.mk_state = 0
                 self.step += 1
                 print(f'[recover] {self.id}')
-                with open('lorry_record.csv','a') as f:
+                with open(self.path,'a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([time_step,self.id,self.mk_state,'recover after repaired'])
 
@@ -156,7 +158,7 @@ class Lorry(object):
             if self.mk_state == 4 or self.mk_state == 5:
                 print(f'[Broken] {self.id}')
                 self.state = 'broken'
-                with open('lorry_record.csv','a') as f:
+                with open(self.path,'a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([time_step,self.id,self.mk_state,'broken'])
                 # The lorry shouldn't break at factory road, otherwise, let it move to the end of the road
@@ -254,7 +256,7 @@ class Lorry(object):
         if ((time_step+1) % self.frequency == 0) and self.state != 'broken':
             self.mk_state = 0
             self.step = 1
-            with open('lorry_record.csv','a') as f:
+            with open(self.path,'a') as f:
                 f_csv = writer(f)
                 f_csv.writerow([time_step,self.id,self.mk_state,'repairing'])
             # If the lorry is running, let it stop first

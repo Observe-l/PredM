@@ -1,0 +1,53 @@
+time,lorry id,MDP,state
+32639,lorry_5,5,broken
+51746,lorry_6,4,broken
+69879,lorry_4,4,broken
+80774,lorry_0,4,broken
+98485,lorry_3,4,broken
+100248,lorry_2,4,broken
+115612,lorry_1,4,broken
+119039,lorry_5,0,recover after broken
+119048,lorry_7,4,broken
+138146,lorry_6,0,recover after broken
+156279,lorry_4,0,recover after broken
+167174,lorry_0,0,recover after broken
+177780,lorry_5,4,broken
+184885,lorry_3,0,recover after broken
+186648,lorry_2,0,recover after broken
+202012,lorry_1,0,recover after broken
+205448,lorry_7,0,recover after broken
+230604,lorry_6,4,broken
+249659,lorry_3,4,broken
+250221,lorry_0,4,broken
+255246,lorry_4,4,broken
+261939,lorry_1,4,broken
+264180,lorry_5,0,recover after broken
+277072,lorry_7,4,broken
+303158,lorry_2,4,broken
+317004,lorry_6,0,recover after broken
+325977,lorry_5,4,broken
+336059,lorry_3,0,recover after broken
+336621,lorry_0,0,recover after broken
+341646,lorry_4,0,recover after broken
+348339,lorry_1,0,recover after broken
+363472,lorry_7,0,recover after broken
+389558,lorry_2,0,recover after broken
+392283,lorry_0,4,broken
+411539,lorry_6,4,broken
+412377,lorry_5,0,recover after broken
+437019,lorry_3,4,broken
+438094,lorry_1,4,broken
+454822,lorry_4,4,broken
+478683,lorry_0,0,recover after broken
+483398,lorry_2,4,broken
+497939,lorry_6,0,recover after broken
+523419,lorry_3,0,recover after broken
+524494,lorry_1,0,recover after broken
+538477,lorry_5,4,broken
+539977,lorry_6,4,broken
+539983,lorry_0,4,broken
+541222,lorry_4,0,recover after broken
+559954,lorry_7,4,broken
+562104,lorry_1,4,broken
+569798,lorry_2,0,recover after broken
+585208,lorry_4,5,broken

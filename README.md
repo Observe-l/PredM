@@ -109,19 +109,3 @@ Condition (Observation space):
 
 1. Design $p$ properly, only when $S>0$, the factory need new lorry.
 2. Lorry pool: when $n^{'}=n_{lorry}-1$, $S$ is still a positive value.
-
-#### Step 2: Assign the lorry 
-
-* Normalise the distance or times a constant
-
-  $C_1=-d*p_3$
-
-* Only select 'waiting' or 'loading' lorry
-
-  $C_2=\left\{\begin{array}{11}1&\textrm{status is waiting}\\p_4*loaded\quad weight&\textrm{status is loading}\\0&\textrm{o.w}\end{array}\right.$, **Remark:** $p_5*loaded\quad weight<1$
-
-* Calculate the score of each lorry, select the lorry with highest score.
-
-  $C=C_1*C_2$
-
-**Remark:** The score should be recalculated whenever a new lorry arrives or departs.

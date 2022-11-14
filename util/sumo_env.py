@@ -22,8 +22,6 @@ class sumoEnv(gym.Env):
         self._init_matlab()
         # Create Factory
         self.factory = [Factory(factory_id=f'Factory{i}', next_factory=f'Factory{i+1}') for i in range(4)]
-        self.prk_count = {'Factory0': 0,'Factory1': 0,
-                          'Factory2': 0,'Factory3': 0}
         
 
     def _init_matlab(self):

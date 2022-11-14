@@ -1,6 +1,7 @@
 import sys
 import optparse
 from csv import writer
+from pathlib import Path
 
 import matlab.engine as engine
 
@@ -8,8 +9,6 @@ import os
 import numpy as np
 import pandas as pd
 
-import multiprocessing
-import threading
 from util.lorry import Lorry
 from util.factory import Factory
 from util.product import product_management
@@ -25,10 +24,11 @@ else:
 from sumolib import checkBinary
 import traci
 
-def run(eng,mdl:str,repair_flag:bool):
+def run(eng,mdl:str,repair_flag:bool,path:str, options):
     # Generate 8 lorries
-    lorry_num = 4
-    lorry = [Lorry(lorry_id=f'lorry_{i}', eng=eng, mdl=mdl) for i in range(lorry_num)]
+    lorry_num = options.lorry_num
+    lorry = [Lorry(lorry_id=f'lorry_{i}', eng=eng, mdl=mdl, path=path, capacity=options.lorry_capacity,
+                   time_broken=int(options.broken_time*86400), labmda1=1/(6*options.mdp_broken)) for i in range(lorry_num)]
     # Gendrate 4 Factories
     factory = [Factory(factory_id='Factory0', produce_rate=[['P1',0.05,None,None]]),
                Factory(factory_id='Factory1', produce_rate=[['P2',0.1,None,None],['P12',0.025,'P1,P2','1,1']]),
@@ -40,11 +40,12 @@ def run(eng,mdl:str,repair_flag:bool):
     execute the TraCI control loop
     run 86400 seconds (24 hours)
     '''
-    result_file = 'result.csv'
+    result_file = path + '/result.csv'
+    lorry_file = path + '/lorry_record.csv'
     with open(result_file,'w') as f:
         f_csv = writer(f)
         f_csv.writerow(['time','A','B','P12','P23','current_lorry'])
-    with open('lorry_record.csv','w') as f:
+    with open(lorry_file,'w') as f:
         f_csv = writer(f)
         f_csv.writerow(['time','lorry id','MDP','state'])
 
@@ -86,7 +87,11 @@ def get_options():
     optParser.add_option("--nogui", action="store_true",
                          default=False, help="run the commandline version of sumo")
     optParser.add_option("--repair", action="store_true",
-                         default=False, help="connect to matlab engine")
+                         default=False, help="repair or not")
+    optParser.add_option("-n","--lorry_num", default=4, type=int, help="number of lorry")
+    optParser.add_option("-c","--lorry_capacity", default=2.0, type=float,help="capacity of lorry")
+    optParser.add_option("-b","--broken_time", default=86400, type=float,help="broken duration")
+    optParser.add_option("-m","--mdp_broken", default=1/6, type=float,help="labmda1")
     options, args = optParser.parse_args()
     return options
 
@@ -104,9 +109,12 @@ if __name__ == "__main__":
     if options.repair:
         repair_flag = True
         print('repair engine every day')
+        path = f'result/{str(options.lorry_num)}lorry_capacity-{str(options.lorry_capacity)}_broken-{str(options.broken_time)}_mdp-{str(options.mdp_broken)}/repair'
     else:
         repair_flag = False
         print('baseline')
+        path = f'result/{str(options.lorry_num)}lorry_capacity-{str(options.lorry_capacity)}_broken-{str(options.broken_time)}_mdp-{str(options.mdp_broken)}/baseline'
+    
     eng = engine.connect_matlab()
     try:
         stop_time = eng.evalin('base', 'Tend')
@@ -133,8 +141,10 @@ if __name__ == "__main__":
 
     # Reload sumo map
     # traci.load(["-c", "map/SG_south_24h/osm.sumocfg","--threads","8"])
-    
-    run(eng,mdl,repair_flag)
+
+    # Create folder
+    Path(path).mkdir(parents=True,exist_ok=True)
+    run(eng,mdl,repair_flag, path, options)
     eng.quit()
 
 

@@ -21,7 +21,7 @@ class product_management(object):
         '''
         self.factory = factory
         self.lorry = lorry
-        self.p = np.array([1.0, 1.0, 1.0, 1.0, 2.0])
+        self.p = np.array([1.0, 1.0, 1.0, 1.0, lorry[0].capacity])
         self.et = 100
         self.s = 0
         self.s1 = 0
@@ -84,10 +84,6 @@ class product_management(object):
                   'Factory2':np.count_nonzero(lorry_count=='Factory2'),
                   'Factory3':np.count_nonzero(lorry_count=='Factory3')}
         
-        # lorry_p1 = np.sum([i.weight for i in self.lorry if i.product == 'P1' and i.state != 'broken' and i.state != 'repair'])
-        # lorry_p2 = np.sum([i.weight for i in self.lorry if i.product == 'P2' and i.state != 'broken' and i.state != 'repair'])
-        # lorry_p12 = np.sum([i.weight for i in self.lorry if i.product == 'P12' and i.state != 'broken' and i.state != 'repair'])
-        # lorry_p23 = np.sum([i.weight for i in self.lorry if i.product == 'P23' and i.state != 'broken' and i.state != 'repair'])
         lorry_p1 = np.sum([i.weight for i in self.lorry if i.product == 'P1' and i.state == 'delivery'])
         lorry_p2 = np.sum([i.weight for i in self.lorry if i.product == 'P2' and i.state == 'delivery'])
         lorry_p12 = np.sum([i.weight for i in self.lorry if i.product == 'P12' and i.state == 'delivery'])
@@ -111,9 +107,6 @@ class product_management(object):
         lorry_pool = [i for i in self.lorry if i.position in factory_idx and i.state == 'waitting']
 
         # Assign the lorry
-        # print('s is:\n',s)
-        # print('s1 is:\n',s1)
-        # print('s2 is:\n',s2)
         self.s = s
         self.s1 = s1
         self.s2 = s2
