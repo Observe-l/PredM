@@ -91,3 +91,31 @@ time,lorry id,MDP,state
 446398,lorry_7,0,recover after repaired
 446398,lorry_8,0,recover after repaired
 446398,lorry_11,0,recover after repaired
+461772,lorry_2,5,broken
+476706,lorry_11,4,broken
+502664,lorry_0,0,recover after broken
+506755,lorry_1,4,broken
+518399,lorry_0,0,repairing
+518399,lorry_3,0,repairing
+518399,lorry_4,0,repairing
+518399,lorry_6,0,repairing
+518399,lorry_7,0,repairing
+518399,lorry_8,0,repairing
+532798,lorry_0,0,recover after repaired
+532798,lorry_3,0,recover after repaired
+532798,lorry_4,0,recover after repaired
+532798,lorry_6,0,recover after repaired
+532798,lorry_7,0,recover after repaired
+532798,lorry_8,0,recover after repaired
+571922,lorry_9,0,recover after broken
+575581,lorry_5,0,recover after broken
+577974,lorry_10,0,recover after broken
+590167,lorry_7,4,broken
+593149,lorry_8,4,broken
+597111,lorry_0,4,broken
+604799,lorry_3,0,repairing
+604799,lorry_4,0,repairing
+604799,lorry_5,0,repairing
+604799,lorry_6,0,repairing
+604799,lorry_9,0,repairing
+604799,lorry_10,0,repairing
