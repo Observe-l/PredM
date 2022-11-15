@@ -89,12 +89,12 @@ class product_management(object):
         lorry_p12 = np.sum([i.weight for i in self.lorry if i.product == 'P12' and i.state == 'delivery'])
         lorry_p23 = np.sum([i.weight for i in self.lorry if i.product == 'P23' and i.state == 'delivery'])
 
-        mA = min(self.factory[0].container.loc['P1','storage'], 3*self.lorry[0].capacity) - (self.factory[1].container.loc['P1','storage'] + lorry_p1)
+        mA = min(self.factory[0].container.loc['P1','storage'], int(len(self.lorry)/2)*self.lorry[0].capacity) - (self.factory[1].container.loc['P1','storage'] + lorry_p1)
         s1[0] = self.p[0] * mA
-        mB1 = min(self.factory[1].container.loc['P2','storage'] - self.factory[1].container.loc['P1','storage'], 3*self.lorry[0].capacity) - (self.factory[2].container.loc['P2','storage'] + lorry_p2)
-        mB2 = min(self.factory[1].container.loc['P12','storage'], 3*self.lorry[0].capacity) - (self.factory[2].container.loc['P12','storage'] + lorry_p12)
+        mB1 = min(self.factory[1].container.loc['P2','storage'] - self.factory[1].container.loc['P1','storage'], int(len(self.lorry)/2)*self.lorry[0].capacity) - (self.factory[2].container.loc['P2','storage'] + lorry_p2)
+        mB2 = min(self.factory[1].container.loc['P12','storage'], int(len(self.lorry)/2)*self.lorry[0].capacity) - (self.factory[2].container.loc['P12','storage'] + lorry_p12)
         s1[1] = self.p[1] * mB1 + self.p[2] * mB2
-        mC = min(self.factory[2].container.loc['P23','storage'], 3*self.lorry[0].capacity) - (self.factory[3].container.loc['P23','storage'] + lorry_p23)
+        mC = min(self.factory[2].container.loc['P23','storage'], int(len(self.lorry)/2)*self.lorry[0].capacity) - (self.factory[3].container.loc['P23','storage'] + lorry_p23)
         s1[2] = self.p[3] * mC
         s2 = - self.p[4] * np.array(list(n_lorry.values()))
         s2_pool = - self.p[4] * (np.array(list(n_lorry.values())) - 1)
