@@ -49,7 +49,7 @@ Each MDP state corresponding to a clutch fault state:
 
 ### Testbed
 
-4 factories, 8 lorries
+4 factories, 12 lorries
 
 |          | # Goods / week                                               |
 | -------- | ------------------------------------------------------------ |
@@ -59,7 +59,7 @@ Each MDP state corresponding to a clutch fault state:
 
 | parameter                         | values                         |
 | --------------------------------- | ------------------------------ |
-| no. lorry                         | 4                              |
+| no. lorry                         | 12                             |
 | $E(\textrm{random failure})$      | $120$ hours                    |
 | $E(\textrm{degradation failure})$ | $24$ hours                     |
 | Factory 0                         | P1                             |

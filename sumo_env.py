@@ -4,19 +4,21 @@ import numpy as np
 import traci
 import matlab.engine as engine
 
-from .lorry import Lorry
-from .factory import Factory
+from util.lorry import Lorry
+from util.factory import Factory
 
 class sumoEnv(gym.Env):
     '''
     sumo environment. state is the engine state (or sensor reading), action is repaired or not
     '''
     def __init__(self, env_config):
-        # There are 2 actions for every engines: repaired or not
+        # 12 lorries
+        self.lorry_num = 12
+        # There are 2 actions: repaired or not
         self.action_space = spaces.Discrete(2)
-        # observation space, 5 sensor reading
-        observation_min = -1000 * np.ones(5)
-        observation_max = 1000 * np.ones(5)
+        # observation space, 9 sensor reading
+        observation_min = -1000 * np.ones(9*self.lorry_num)
+        observation_max = 1000 * np.ones(9*self.lorry_num)
         self.observation_space = spaces.Box(low=observation_min,high=observation_max)
         # init matlab model
         self._init_matlab()
