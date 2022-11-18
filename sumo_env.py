@@ -6,6 +6,7 @@ import matlab.engine as engine
 
 from util.lorry import Lorry
 from util.factory import Factory
+from util.product import product_management
 
 class sumoEnv(gym.Env):
     '''
@@ -14,16 +15,18 @@ class sumoEnv(gym.Env):
     def __init__(self, env_config):
         # 12 lorries
         self.lorry_num = 12
+        self.path = 'result/gym_12lorry__broken-3'
+        self.result_file = self.path + '/lorry_record.csv'
+        
         # There are 2 actions: repaired or not
-        self.action_space = spaces.Discrete(2)
+        self.action_space = spaces.Tuple([spaces.Discrete(2) for _ in range(self.lorry_num)])
         # observation space, 9 sensor reading
-        observation_min = -1000 * np.ones(9*self.lorry_num)
-        observation_max = 1000 * np.ones(9*self.lorry_num)
-        self.observation_space = spaces.Box(low=observation_min,high=observation_max)
+        # observation_min = -10 * np.ones(9*self.lorry_num)
+        # observation_max = 10 * np.ones(9*self.lorry_num)
+        self.observation_space = spaces.Box(low=-10,high=10,shape=(self.lorry_num, 100, 9))
         # init matlab model
         self._init_matlab()
-        # Create Factory
-        self.factory = [Factory(factory_id=f'Factory{i}', next_factory=f'Factory{i+1}') for i in range(4)]
+        # init sumo
         
 
     def _init_matlab(self):
@@ -47,27 +50,37 @@ class sumoEnv(gym.Env):
         clutch = -1*np.ones(6,dtype=np.int64)
         self.eng.set_param(self.mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
         init_clutch = self.eng.get_param(self.mdl + '/[A B C D E F]', 'Value')
+    
+    def _init_sumo(self):
+        # Close existing traci connection
+        try:
+            traci.close()
+        except:
+            pass
+        traci.start(["sumo", "-c", "map/3km_1week/osm.sumocfg","--threads","8"])
+        # Create lorry
+        self.lorry = [Lorry(lorry_id=f'lorry_{i}', eng=self.eng, mdl=self.mdl, path=self.path, capacity=0.5,
+                    time_broken=int(3*86400), labmda1=1/(6*1)) for i in range(self.lorry_num)]
+        # Create factory
+        self.factory = [Factory(factory_id='Factory0', produce_rate=[['P1',0.05,None,None]]),
+                Factory(factory_id='Factory1', produce_rate=[['P2',0.1,None,None],['P12',0.025,'P1,P2','1,1']]),
+                Factory(factory_id='Factory2', produce_rate=[['P3',0.05,None,None],['P23',0.025,'P2,P3','1,1'],['A',0.025,'P12,P3','1,1']]),
+                Factory(factory_id='Factory3', produce_rate=[['P4',0.05,None,None],['B',0.025,'P23,P4','1,1']])
+                ]
+        # The lorry and factory mamanent
+        self.product = product_management(self.factory,self.lorry)
 
     def reset(self):
         '''
         reset the sumo map after 24 hours.
         '''
-        traci.start(["sumo-gui", "-c", "map/SG_south_24h/osm.sumocfg","--threads","8"])
-        self.lorry = [Lorry(lorry_id=f'lorry_{i}', eng=self.eng, mdl=self.mdl) for i in range(8)]
-
+        self._init_sumo()
         self.done = False
-        obs = np.zeros(5)
-        return obs
+        self.observation = np.zeros((self.lorry_num, 100, 9))
+        return self.observation
     
     def step(self, action):
         traci.simulationStep()
-        for prk_factory in range(4):
-            self.prk_count[f'Factory{prk_factory}'] = traci.parkingarea.getVehicleCount(f'Factory{prk_factory}')
-        tmp_state = [self.lorry[i].refresh_state() for i in range(8)]
+        tmp_state = [self.lorry[i].refresh_state() for i in range(self.lorry_num)]
 
-        for tmp_factory in self.factory:
-            tmp_factory.factory_step(self.lorry[0],self.prk_count)
-
-
-        
 
