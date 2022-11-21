@@ -1,5 +1,6 @@
 import gym
 from gym import spaces
+from csv import writer
 import numpy as np
 import traci
 import matlab.engine as engine
@@ -16,17 +17,26 @@ class sumoEnv(gym.Env):
         # 12 lorries
         self.lorry_num = 12
         self.path = 'result/gym_12lorry__broken-3'
-        self.result_file = self.path + '/lorry_record.csv'
+        self.lorry_file = self.path + '/lorry_record.csv'
+        self.result_file = self.path + '/result.csv'
         
         # There are 2 actions: repaired or not
         self.action_space = spaces.Tuple([spaces.Discrete(2) for _ in range(self.lorry_num)])
+        # mdp step
+        self.mdp_step = 100
         # observation space, 9 sensor reading
-        # observation_min = -10 * np.ones(9*self.lorry_num)
-        # observation_max = 10 * np.ones(9*self.lorry_num)
         self.observation_space = spaces.Box(low=-10,high=10,shape=(self.lorry_num, 100, 9))
         # init matlab model
         self._init_matlab()
-        # init sumo
+        # init record
+        with open(self.result_file,'w') as f:
+            f_csv = writer(f)
+            f_csv.writerow(['time','A','B','P12','P23','current_lorry'])
+        with open(self.lorry_file,'w') as f:
+            f_csv = writer(f)
+            f_csv.writerow(['time','lorry id','MDP','state'])
+        
+        
         
 
     def _init_matlab(self):
@@ -49,7 +59,6 @@ class sumoEnv(gym.Env):
         # Initial the model
         clutch = -1*np.ones(6,dtype=np.int64)
         self.eng.set_param(self.mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
-        init_clutch = self.eng.get_param(self.mdl + '/[A B C D E F]', 'Value')
     
     def _init_sumo(self):
         # Close existing traci connection
@@ -69,6 +78,8 @@ class sumoEnv(gym.Env):
                 ]
         # The lorry and factory mamanent
         self.product = product_management(self.factory,self.lorry)
+        # lorry pool, only select normal lorry, i.e,. not 'broken'
+        self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
 
     def reset(self):
         '''
@@ -76,11 +87,30 @@ class sumoEnv(gym.Env):
         '''
         self._init_sumo()
         self.done = False
-        self.observation = np.zeros((self.lorry_num, 100, 9))
+        self.step_num = 1
+        for _ in range(self.mdp_step * 5):
+            traci.simulationStep()
+            tmp_state = [self.lorry[i].refresh_state() for i in range(self.lorry_num)]
+            self.product.produce_load()
+            self.product.lorry_manage()
+        # lorry pool, only select normal lorry, i.e,. not 'broken'
+        self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
+        # update the action space and observation space
+        self.action_space = spaces.Tuple([spaces.Discrete(2) for _ in range(len(self.lorry_pool))])
+        self.observation_space = spaces.Box(low=-10,high=10,shape=(len(self.lorry_pool), 100, 9))
+    
+        # Get column name
+        tmp_col = self.lorry[0].sensor.columns[0:9]
+        # Read sensor reading
+        self.observation = np.array([tmp_lorry.sensor[tmp_col].values for tmp_lorry in self.lorry_pool])
         return self.observation
     
     def step(self, action):
-        traci.simulationStep()
-        tmp_state = [self.lorry[i].refresh_state() for i in range(self.lorry_num)]
+        # action is a tuple. 0 
+        for tmp_idx in np.where(np.array(action)):
+            self.lorry_pool[tmp_idx].maintenance_flag = True
+        for _ in range(self.mdp_step):
+            traci.simulationStep()
+            tmp_state = [self.lorry[i].refresh_state() for i in range(self.lorry_num)]
 
 

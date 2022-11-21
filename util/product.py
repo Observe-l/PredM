@@ -76,7 +76,7 @@ class product_management(object):
     def lorry_manage(self) -> None:
         s1 = np.zeros(len(self.factory))
         # Only use normal lorry
-        lorry_count = np.array([i.position for i in self.lorry if i.state != 'broken' and i.state != 'repair'])
+        lorry_count = np.array([i.position for i in self.lorry if i.state != 'broken' and i.state != 'repair' and i.state != 'maintenance'])
         if len(lorry_count) == 0:
             lorry_count = np.array(['all broken'])
         n_lorry = {'Factory0':np.count_nonzero(lorry_count=='Factory0'),

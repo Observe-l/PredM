@@ -36,10 +36,7 @@ def run(eng,mdl:str,repair_flag:bool,path:str, options):
                Factory(factory_id='Factory3', produce_rate=[['P4',0.05,None,None],['B',0.025,'P23,P4','1,1']])
               ]
     product = product_management(factory,lorry)
-    '''
-    execute the TraCI control loop
-    run 86400 seconds (24 hours)
-    '''
+
     result_file = path + '/result.csv'
     lorry_file = path + '/lorry_record.csv'
     with open(result_file,'w') as f:
@@ -49,6 +46,10 @@ def run(eng,mdl:str,repair_flag:bool,path:str, options):
         f_csv = writer(f)
         f_csv.writerow(['time','lorry id','MDP','state'])
 
+    '''
+    execute the TraCI control loop
+    run 86400*7 seconds (1 week)
+    '''
     for time_step in range(86400*7):
         traci.simulationStep()
 
