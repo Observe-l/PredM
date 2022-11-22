@@ -25,7 +25,7 @@ from sumolib import checkBinary
 import traci
 
 def run(eng,mdl:str,repair_flag:bool,path:str, options):
-    # Generate 8 lorries
+    # Generate lorries
     lorry_num = options.lorry_num
     lorry = [Lorry(lorry_id=f'lorry_{i}', eng=eng, mdl=mdl, path=path, capacity=options.lorry_capacity,
                    time_broken=int(options.broken_time*86400), labmda1=1/(6*options.mdp_broken)) for i in range(lorry_num)]

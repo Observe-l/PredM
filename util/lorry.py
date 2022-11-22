@@ -42,6 +42,13 @@ class Lorry(object):
         self.color = (255,255,0,255)
         self.recover_state = 'waitting'
 
+        # sumo time
+        self.time_step = 0
+        # record total transported product
+        self.total_product = 0.0
+        self.product_record = pd.DataFrame({'time':[0.0], 'total_product':[0.0]})
+        self.product_record.set_index(['time'], inplace=True)
+
         # Markov state
         #    5 (lambda_0 = 0.013364)
         #0 1 2 3 4 (lambda_1=0.333442, lambda_m=0.653194)
@@ -98,11 +105,15 @@ class Lorry(object):
         self.position = position
         self.destination = destination
 
-    def refresh_state(self,time_step, repair_flag, maintenance_flag = False) -> dict:
+    def refresh_state(self,time_step, repair_flag) -> dict:
         '''
         get current state, refresh state
         '''
-        # Check current location
+        self.time_step = time_step
+        # record the transported product
+        self.product_record.at[self.time_step,'total_product'] = self.total_product
+
+        # Check current location, if the vehicle remove by SUMO, add it first
         try:
             parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
         except:
@@ -117,7 +128,7 @@ class Lorry(object):
             self.maintenance()
         # Repair the engine
         if repair_flag:
-            self.repair(time_step)
+            self.repair()
         if self.state == 'broken':
             self.step_repair += 1
             # Repair the lorry, spend 1 day
@@ -125,10 +136,12 @@ class Lorry(object):
                 self.state = self.recover_state
                 self.mk_state = 0
                 self.step += 1
+                # In sumo the lorry resume from stop
+                traci.vehicle.resume(vehID=self.id)
                 print(f'[recover] {self.id}')
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
-                    f_csv.writerow([time_step,self.id,self.mk_state,'recover after broken'])
+                    f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after broken'])
 
         # mannually repair the engine
         elif self.state == 'repair':
@@ -137,10 +150,12 @@ class Lorry(object):
                 self.state = self.recover_state
                 self.mk_state = 0
                 self.step += 1
+                # In sumo the lorry resume from stop
+                traci.vehicle.resume(vehID=self.id)
                 print(f'[recover] {self.id}')
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
-                    f_csv.writerow([time_step,self.id,self.mk_state,'recover after repaired'])
+                    f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after repaired'])
 
         elif parking_state.arrival < 0:
             self.state = 'delivery'
@@ -152,18 +167,23 @@ class Lorry(object):
 
         # Update the engine state and get sensor reading from Simulink
         if self.state == 'delivery' and self.step % self.state_trans ==0:
-            self.MDP_model(time_step)
+            self.MDP_model()
             if self.mk_state == 4 or self.mk_state == 5:
                 print(f'[Broken] {self.id}')
                 self.state = 'broken'
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
-                    f_csv.writerow([time_step,self.id,self.mk_state,'broken'])
+                    f_csv.writerow([self.time_step,self.id,self.mk_state,'broken'])
                 self.lorry_stop()
         return {'state':self.state, 'postion':self.position}
 
 
     def lorry_stop(self):
+        '''
+        When lorry broken or we decide to repair / maintain the lorry,
+        use this function to stop the lorry first
+        Time-based function
+        '''
         # The lorry shouldn't break at factory road, otherwise, let it move to the end of the road
         current_edge = traci.vehicle.getRoadID(vehID=self.id)
         factory_idx = ['Factory0','Factory1','Factory2','Factory3']
@@ -178,27 +198,40 @@ class Lorry(object):
             self.recover_state = 'delivery'
             try:
                 # stop after 20 meters barking
-                traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=150,duration = self.time_broken)
+                traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=150)
             except:
                 # stop at next edge. the length of the edge must longer than 25m
                 tmp_idx = traci.vehicle.getRouteIndex(vehID=self.id)
                 tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx+2]
-                traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=0, duration = self.time_broken)
+                traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=0)
         else:
             self.recover_state = 'delivery'
             try:
                 # stop after 20 meters barking
-                traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id)+25, duration = self.time_broken)
+                traci.vehicle.setStop(vehID=self.id,edgeID=traci.vehicle.getRoadID(vehID=self.id),pos=traci.vehicle.getLanePosition(vehID=self.id)+25)
             except:
                 # stop at next edge. the length of the edge must longer than 25m
                 tmp_idx = traci.vehicle.getRouteIndex(vehID=self.id)
                 try:
                     tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx+1]
-                    traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=25, duration = self.time_broken)
+                    traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=25)
                 except:
                     tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx+2]
-                    traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=0, duration = self.time_broken)
+                    traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=0)
 
+    def delivery(self, destination:str) -> None:
+        '''
+        delevery the cargo to another factory
+        '''
+        self.state = 'delivery'
+        # Remove vehicle first, add another lorry. (If we want to use the dijkstra algorithm in SUMO, we must creat new vehicle)
+        self.destination = destination
+        traci.vehicle.changeTarget(vehID=self.id, edgeID=destination)
+        # Move out the car parking area
+        traci.vehicle.resume(vehID=self.id)
+        # Stop at next parking area
+        traci.vehicle.setParkingAreaStop(vehID=self.id, stopID=self.destination)
+        print(f'[move] {self.id} move from {self.position} to {self.destination}')
 
     def load_cargo(self, weight:float, product:str) -> tuple[str, float]:
         '''
@@ -219,21 +252,9 @@ class Lorry(object):
             self.state = 'pending for delivery'
             self.color = (255,0,0,255)
             traci.vehicle.setColor(typeID=self.id,color=self.color)
+            # After the lorry is full, record it
+            self.total_product += self.weight
             return ('full', self.weight + weight - self.capacity)
-    
-    def delivery(self, destination:str) -> None:
-        '''
-        delevery the cargo to another factory
-        '''
-        self.state = 'delivery'
-        # Remove vehicle first, add another lorry. (If we want to use the dijkstra algorithm in SUMO, we must creat new vehicle)
-        self.destination = destination
-        traci.vehicle.changeTarget(vehID=self.id, edgeID=destination)
-        # Move out the car parking area
-        traci.vehicle.setParkingAreaStop(vehID=self.id, stopID=self.position, duration=0)
-        # Stop at next parking area
-        traci.vehicle.setParkingAreaStop(vehID=self.id, stopID=self.destination)
-        print(f'[move] {self.id} move from {self.position} to {self.destination}')
     
     def unload_cargo(self, weight:float) -> tuple[str, float]:
         '''
@@ -253,14 +274,14 @@ class Lorry(object):
             traci.vehicle.setColor(typeID=self.id,color=self.color)
             return ('not enough', remainning_weight)
     
-    def repair(self,time_step):
-        if ((time_step+1) % self.frequency == 0) and self.state != 'broken':
+    def repair(self):
+        if ((self.time_step+1) % self.frequency == 0) and self.state != 'broken':
             self.mk_state = 0
             self.step = 1
             self.recover_state = self.state
             with open(self.path,'a') as f:
                 f_csv = writer(f)
-                f_csv.writerow([time_step,self.id,self.mk_state,'repairing'])
+                f_csv.writerow([self.time_step,self.id,self.mk_state,'repairing'])
             # If the lorry is running, let it stop first
             if self.state == 'delivery':
                 self.lorry_stop()
@@ -273,6 +294,7 @@ class Lorry(object):
         if self.mk_state < 4:
             self.recover_state = self.state
             # If the lorry is running, let it stop first
+            self.lorry_stop()
             if lm < self.threshold1:
                 self.mk_state = 5
                 self.state = 'broken'
@@ -281,12 +303,20 @@ class Lorry(object):
             else:
                 self.mk_state += 6
                 self.state = 'maintenance'
+                with open(self.path,'a') as f:
+                    f_csv = writer(f)
+                    f_csv.writerow([self.time_step,self.id,self.mk_state,'maintenance'])
                 return 'maintenance'
         elif self.mk_state > 5:
             if lm < self.mu:
                 self.mk_state = max(0, self.mk_state-7)
                 self.state = self.recover_state
+                # In sumo the lorry resume from stop
+                traci.vehicle.resume(vehID=self.id)
                 self.maintenance_flag = False
+                with open(self.path,'a') as f:
+                    f_csv = writer(f)
+                    f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after maintenance'])
                 return 'successful'
             else:
                 return 'try again'
@@ -294,7 +324,7 @@ class Lorry(object):
             return 'broken'
 
     
-    def MDP_model(self,time_step) -> None:
+    def MDP_model(self) -> None:
         '''
         Update the Simulink model
         State 0: Normal
