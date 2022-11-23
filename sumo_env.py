@@ -1,6 +1,7 @@
 import gym
 from gym import spaces
 from csv import writer
+from pathlib import Path
 import numpy as np
 import traci
 import matlab.engine as engine
@@ -17,19 +18,23 @@ class sumoEnv(gym.Env):
         # 12 lorries
         self.lorry_num = 12
         self.path = 'result/gym_12lorry__broken-3'
+        # Create folder
+        Path(self.path).mkdir(parents=True, exist_ok=True)
         self.lorry_file = self.path + '/lorry_record.csv'
         self.result_file = self.path + '/result.csv'
         
         # There are 2 actions: repaired or not
         self.action_space = spaces.Tuple([spaces.Discrete(2) for _ in range(self.lorry_num)])
-        # mdp step, 10 min
+        # mdp step, 10 min, unit is second
         self.mdp_step = 600
         # sumo step 86400*7
         self.sumo_step = 0
+        # sumo repeating times
+        self.sumo_repeat = 0
         # observation space, 9 sensor reading
         self.observation_space = spaces.Box(low=-10,high=10,shape=(self.lorry_num, 100, 9))
         # init matlab model
-        self._init_matlab()
+        self.init_matlab()
         # init record
         with open(self.result_file,'w') as f:
             f_csv = writer(f)
@@ -39,7 +44,7 @@ class sumoEnv(gym.Env):
             f_csv.writerow(['time','lorry id','MDP','state'])
         
 
-    def _init_matlab(self):
+    def init_matlab(self):
         # Connect to matlab & simulink model
         self.mdl = 'transmission_fault_detection'
         self.eng = engine.connect_matlab()
@@ -60,7 +65,7 @@ class sumoEnv(gym.Env):
         clutch = -1*np.ones(6,dtype=np.int64)
         self.eng.set_param(self.mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
     
-    def _init_sumo(self):
+    def init_sumo(self):
         # Close existing traci connection
         try:
             traci.close()
@@ -69,7 +74,7 @@ class sumoEnv(gym.Env):
         traci.start(["sumo", "-c", "map/3km_1week/osm.sumocfg","--threads","8"])
         # Create lorry
         self.lorry = [Lorry(lorry_id=f'lorry_{i}', eng=self.eng, mdl=self.mdl, path=self.path, capacity=0.5,
-                    time_broken=int(3*86400), labmda1=1/(6*1)) for i in range(self.lorry_num)]
+                    time_broken=int(3*86400), env_step=self.mdp_step) for i in range(self.lorry_num)]
         # Create factory
         self.factory = [Factory(factory_id='Factory0', produce_rate=[['P1',0.05,None,None]]),
                 Factory(factory_id='Factory1', produce_rate=[['P2',1,None,None],['P12',0.25,'P1,P2','1,1']]),
@@ -80,21 +85,21 @@ class sumoEnv(gym.Env):
         self.product = product_management(self.factory, self.lorry)
         # lorry pool, only select normal lorry, i.e,. not 'broken'
         self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
-        # update transported product
-        self.lorry_trans = np.sum([tmp_lorry.product_record.loc[0,'total_product'] for tmp_lorry in self.lorry])
 
     def reset(self):
         '''
         reset the sumo map after 24 hours.
         '''
-        self._init_sumo()
+        self.sumo_repeat += 1
+        self.init_sumo()
         self.done = False
         self.sumo_step = 0
         self.step_num = 1
         for _ in range(3600):
-            self.sumo_step += 1 
             traci.simulationStep()
-            tmp_state = [self.lorry[i].refresh_state() for i in range(self.lorry_num)]
+            self.sumo_step += 1
+            current_time = traci.simulation.getTime()
+            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400*7, repair_flag=False) for tmp_lorry in self.lorry]
             self.product.produce_load()
             self.product.lorry_manage()
         # lorry pool, only select normal lorry, i.e,. not 'broken'
@@ -107,23 +112,24 @@ class sumoEnv(gym.Env):
         self.tmp_col = self.lorry[0].sensor.columns[0:9]
         # Read sensor reading
         observation = np.array([tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry_pool])
+        # print(observation)
         # update transported product
         current_time = traci.simulation.getTime()
         # Calculate the reward
-        tmp_trans = self.lorry_trans
-        self.lorry_trans = np.sum([tmp_lorry.product_record.loc[current_time,'total_product'] for tmp_lorry in self.lorry])
-        reward = self.lorry_trans - tmp_trans
+        last_trans = np.sum([tmp_lorry.product_record.loc[current_time - 3600,'total_product'] for tmp_lorry in self.lorry])
+        current_trans = np.sum([tmp_lorry.product_record.loc[current_time,'total_product'] for tmp_lorry in self.lorry])
+        reward = current_trans - last_trans
         return observation
     
     def step(self, action):
         # action is a tuple. 0 
-        for tmp_idx in np.where(np.array(action)):
+        for tmp_idx in np.where(np.array(action))[0]:
             self.lorry_pool[tmp_idx].maintenance_flag = True
         for _ in range(self.mdp_step):
+            traci.simulationStep()
             self.sumo_step += 1
             current_time = traci.simulation.getTime()
-            traci.simulationStep()
-            tmp_state = [tmp_lorry.refresh_state(time_step=current_time,repair_flag=False) for tmp_lorry in self.lorry]
+            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400*7, repair_flag=False) for tmp_lorry in self.lorry]
             self.product.produce_load()
             self.product.lorry_manage()
         # lorry pool, only select normal lorry, i.e,. not 'broken'
@@ -135,9 +141,20 @@ class sumoEnv(gym.Env):
         # Read sensor reading
         observation = np.array([tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry_pool])
         # Get the reward, 1 hour
-        tmp_trans = self.lorry_trans
-        self.lorry_trans = np.sum([tmp_lorry.product_record.loc[current_time-3600,'total_product'] for tmp_lorry in self.lorry])
-        reward = self.lorry_trans - tmp_trans
+        last_trans = np.sum([tmp_lorry.product_record.loc[current_time - 3600,'total_product'] for tmp_lorry in self.lorry])
+        current_trans = np.sum([tmp_lorry.product_record.loc[current_time,'total_product'] for tmp_lorry in self.lorry])
+        reward = current_trans - last_trans
+
+        # Record the result
+        with open(self.result_file,'a') as f:
+            f_csv = writer(f)
+            tmp_A = round(self.factory[2].product.loc['A','total'],3)
+            tmp_B = round(self.factory[3].product.loc['B','total'],3)
+            tmp_P12 = round(self.factory[1].product.loc['P12','total'],3)
+            tmp_P23 = round(self.factory[2].product.loc['P23','total'],3)
+            tmp_lorry = len([i for i in self.lorry if i.state != 'broken' and i.state != 'repair' and i.state != 'maintenance'])
+            tmp_time = round((self.sumo_step / 3600)+(self.sumo_repeat-1)*7*24,3)
+            f_csv.writerow([tmp_time,tmp_A,tmp_B,tmp_P12,tmp_P23,tmp_lorry])
 
         if self.sumo_step >= 86400*7:
             self.done = True

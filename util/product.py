@@ -53,7 +53,7 @@ class product_management(object):
                 if tmp_lorry.position == tmp_factory.id:
                     tmp_result = tmp_factory.load_cargo(tmp_lorry,tmp_lorry.product)
                     if tmp_result == 'full':
-                        print(f'[delievery] {tmp_lorry.id} delivers the {tmp_lorry.product}')
+                        # print(f'[delievery] {tmp_lorry.id} delivers the {tmp_lorry.product}')
                         tmp_lorry.delivery(self.transport_idx[tmp_lorry.product])
             
             # for item in tmp_product:
@@ -124,7 +124,7 @@ class product_management(object):
                     c[i] = traci.vehicle.getDrivingDistance(vehID=tmp_lorry.id, edgeID=factory_assign,pos=0)
                     traci.vehicle.changeTarget(vehID=tmp_lorry.id,edgeID=tmp_des)
             
-            print(f'[Assign] {lorry_pool[c.argmin()].id} relocates to {factory_assign}')
+            #print(f'[Assign] {lorry_pool[c.argmin()].id} relocates to {factory_assign}')
             lorry_pool[c.argmin()].delivery(destination=factory_assign)
             
 

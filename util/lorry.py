@@ -11,8 +11,9 @@ class Lorry(object):
     Function: updata health, move to some positon, fix or broken ...
     '''
     def __init__(self, lorry_id:str = 'lorry_0', capacity:float = 2.0, weight:float = 0.0,\
-                 state:str = 'delivery', position:str = 'Factory0', destination:str = 'Factory0', product:str = 'A', eng=None, mdl:str=None,
-                 path:str = 'result', time_broken:int = 86400, labmda1:float = 1/6) -> None:
+                 state:str = 'delivery', position:str = 'Factory0', destination:str = 'Factory0', product:str = 'A', eng=None, mdl:str=None,\
+                 path:str = 'result', time_broken:int = 86400, mdp_freq:float = 6*3600, env_step:int = 3600, broken_freq:float = 86400*10,\
+                 maintenance_freq:float = 4*3600, repair_freq:float = 86400*3) -> None:
         '''
         Parameters:
         lorry_id: string
@@ -22,6 +23,16 @@ class Lorry(object):
         state: The state of the lorry: waitting, loading, pending, delivery, repair, broken, maintenance
         position: string
         destination: string
+        path: save the experiments result
+
+        MDP parameter, unit is second
+        time_broken: time based repair speed
+        mdp_freq: mdp transfor frequency when lorry is running
+        env_step: RL time step
+        broken_freq: random failure frequency
+        maintenance_freq: maintenance successful frequency
+        repair_freq: repair succseeful frequency
+
         '''
         # Create lorry in sumo. If the lorry already exist, remove it first
         try:
@@ -53,13 +64,14 @@ class Lorry(object):
         #    5 (lambda_0 = 0.013364)
         #0 1 2 3 4 (lambda_1=0.333442, lambda_m=0.653194)
         self.mk_state = 0
-        lm_0 = 1/240
-        lm_1 = labmda1
-        self.mu = 1/4
+        lm_0 = env_step/broken_freq
+        lm_1 = env_step/mdp_freq
+        self.mu0 = env_step/maintenance_freq
+        self.mu1 = env_step/repair_freq
         self.threshold1 = lm_0
         self.threshold2 = 1-lm_1
-        # Transfer the state after running 1 hour
-        self.state_trans = 3600
+        # Transfer the state after time 'state_trans'
+        self.state_trans = env_step
         self.step = 1
 
         # recover after time_broken
@@ -124,25 +136,27 @@ class Lorry(object):
 
         self.position = parking_state.stoppingPlaceID
         # Lorry maintenance
-        if self.maintenance_flag:
+        if self.maintenance_flag and self.time_step%self.state_trans==1:
             self.maintenance()
         # Repair the engine
         if repair_flag:
             self.repair()
-        if self.state == 'broken':
-            self.step_repair += 1
-            # Repair the lorry, spend 1 day
-            if self.step_repair % self.time_broken == 0:
-                self.state = self.recover_state
-                self.mk_state = 0
-                self.step += 1
-                # In sumo the lorry resume from stop
-                traci.vehicle.resume(vehID=self.id)
-                print(f'[recover] {self.id}')
-                with open(self.path,'a') as f:
-                    f_csv = writer(f)
-                    f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after broken'])
+        # if self.state == 'broken':
+        #     self.step_repair += 1
+        #     # Repair the lorry, spend 1 day
+        #     if self.step_repair % self.time_broken == 0:
+        #         self.state = self.recover_state
+        #         self.mk_state = 0
+        #         self.step += 1
+        #         # In sumo the lorry resume from stop
+        #         traci.vehicle.resume(vehID=self.id)
+        #         print(f'[recover] {self.id}')
+        #         with open(self.path,'a') as f:
+        #             f_csv = writer(f)
+        #             f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after broken'])
 
+        if self.state == 'broken' and self.time_step % self.state_trans == 1:
+            self.broken_repair()
         # mannually repair the engine
         elif self.state == 'repair':
             self.step_repair +=1
@@ -156,7 +170,9 @@ class Lorry(object):
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after repaired'])
-
+        # ignore the maintenance state
+        elif self.mk_state > 3:
+            pass
         elif parking_state.arrival < 0:
             self.state = 'delivery'
             self.step += 1
@@ -164,7 +180,6 @@ class Lorry(object):
             self.state = 'pending for unloading'
         elif self.weight == 0:
             self.state = 'waitting'
-
         # Update the engine state and get sensor reading from Simulink
         if self.state == 'delivery' and self.step % self.state_trans ==0:
             self.MDP_model()
@@ -231,7 +246,7 @@ class Lorry(object):
         traci.vehicle.resume(vehID=self.id)
         # Stop at next parking area
         traci.vehicle.setParkingAreaStop(vehID=self.id, stopID=self.destination)
-        print(f'[move] {self.id} move from {self.position} to {self.destination}')
+        #print(f'[move] {self.id} move from {self.position} to {self.destination}')
 
     def load_cargo(self, weight:float, product:str) -> tuple[str, float]:
         '''
@@ -288,6 +303,21 @@ class Lorry(object):
             
             self.state = 'repair'
             print(f'[repair] {self.id} back to state {self.mk_state}')
+    
+    def broken_repair(self):
+        lm = random.uniform
+        if lm < self.mu1:
+            self.state = self.recover_state
+            self.mk_state = 0
+            self.step += 1
+            # In sumo the lorry resume from stop
+            traci.vehicle.resume(vehID=self.id)
+            print(f'[recover] {self.id}')
+            with open(self.path,'a') as f:
+                f_csv = writer(f)
+                f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after broken'])
+        else:
+            pass
         
     def maintenance(self):
         lm = random.uniform(0,1)
@@ -297,23 +327,26 @@ class Lorry(object):
             self.lorry_stop()
             if lm < self.threshold1:
                 self.mk_state = 5
+                print(f'[Broken] {self.id}')
                 self.state = 'broken'
                 self.maintenance_flag = False
                 return 'broken'
             else:
                 self.mk_state += 6
                 self.state = 'maintenance'
+                print(f'[maintenance] {self.id} go to state {self.mk_state}')
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([self.time_step,self.id,self.mk_state,'maintenance'])
                 return 'maintenance'
         elif self.mk_state > 5:
-            if lm < self.mu:
+            if lm < self.mu0:
                 self.mk_state = max(0, self.mk_state-7)
                 self.state = self.recover_state
                 # In sumo the lorry resume from stop
                 traci.vehicle.resume(vehID=self.id)
                 self.maintenance_flag = False
+                print(f'[recover] {self.id}')
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after maintenance'])
@@ -350,7 +383,7 @@ class Lorry(object):
                 self.mk_state = self.mk_state
         else:
             self.mk_state = self.mk_state
-        print(f'[MDP state] {self.id} state: {self.mk_state}')
+        print(f'[MDP state] {self.id} state: {self.mk_state}, time:{self.time_step}')
         
         # Clutch fault injection
         if self.mk_state == 0:
@@ -368,7 +401,11 @@ class Lorry(object):
 
         # Simulation
         splid_len = 100
-        self.eng.set_param(self.mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
+        try:
+            self.eng.set_param(self.mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
+        except:
+            print(f'{self.id}, mdp: {self.mk_state}, time: {self.time_step}, state: {self.state}')
+            self.eng.set_param(self.mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
         out = self.eng.sim(self.mdl)
         # Get time
         idx = [{'type':'.','subs':'yout'},{'type':'{}','subs':[2]},{'type':'.','subs':'Values'},{'type':'.','subs':'Time'}]
