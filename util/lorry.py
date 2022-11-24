@@ -60,6 +60,9 @@ class Lorry(object):
         self.product_record = pd.DataFrame({'time':[0.0], 'total_product':[0.0]})
         self.product_record.set_index(['time'], inplace=True)
 
+        # self.reward = pd.DataFrame({'time':[0.0], 'total_product':[0.0]})
+        # self.reward.set_index(['time'], inplace=True)
+
         # Markov state
         #    5 (lambda_0 = 0.013364)
         #0 1 2 3 4 (lambda_1=0.333442, lambda_m=0.653194)
@@ -118,6 +121,9 @@ class Lorry(object):
         self.state = state
         self.position = position
         self.destination = destination
+    
+    # def record_reward(self):
+    #     self.product_record.at[self.time_step,'total_product'] = self.total_product
 
     def refresh_state(self,time_step, repair_flag) -> dict:
         '''
@@ -128,8 +134,13 @@ class Lorry(object):
         self.product_record.at[self.time_step,'total_product'] = self.total_product
 
         # Check current location, if the vehicle remove by SUMO, add it first
-        # try:
-        parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
+        try:
+            tmp_pk = traci.vehicle.getStops(vehID=self.id)
+            parking_state = tmp_pk[-1]
+        except:
+            print(f'{self.id}, position:{self.position}, destination:{self.destination}, parking: {traci.vehicle.getStops(vehID=self.id)}, state: {self.state}')
+            print(f'weight: {self.weight}, mdp state: {self.mk_state}')
+            parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
         # except:
         #     traci.vehicle.add(vehID=self.id,routeID=self.destination + '_to_'+ self.destination, typeID='lorry')
         #     traci.vehicle.setParkingAreaStop(vehID=self.id,stopID=self.destination)
@@ -137,6 +148,11 @@ class Lorry(object):
         #     parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
 
         self.position = parking_state.stoppingPlaceID
+
+        # fix some bug, ensure lorry stop when maintenance
+        if self.mk_state > 5 and self.recover_state=='delivery' and len(tmp_pk)==1:
+            self.lorry_stop()
+
         # Lorry maintenance
         if self.maintenance_flag and self.time_step%self.state_trans==1:
             self.maintenance()
@@ -316,7 +332,8 @@ class Lorry(object):
             self.mk_state = 0
             self.step += 1
             # In sumo the lorry resume from stop
-            traci.vehicle.resume(vehID=self.id)
+            if self.state == 'delivery':
+                traci.vehicle.resume(vehID=self.id)
             print(f'[recover] {self.id}')
             with open(self.path,'a') as f:
                 f_csv = writer(f)
@@ -332,7 +349,8 @@ class Lorry(object):
         if self.mk_state < 4:
             self.recover_state = self.state
             # If the lorry is running, let it stop first
-            self.lorry_stop()
+            if self.state == 'delivery':
+                self.lorry_stop()
             if lm < self.threshold1:
                 self.mk_state = 5
                 print(f'[Broken] {self.id}')
@@ -352,7 +370,8 @@ class Lorry(object):
                 self.mk_state = max(0, self.mk_state-7)
                 self.state = self.recover_state
                 # In sumo the lorry resume from stop
-                traci.vehicle.resume(vehID=self.id)
+                if self.state == 'delivery':
+                    traci.vehicle.resume(vehID=self.id)
                 self.maintenance_flag = False
                 print(f'[recover] {self.id}')
                 with open(self.path,'a') as f:

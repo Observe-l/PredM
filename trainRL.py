@@ -28,7 +28,7 @@ if __name__ == '__main__':
     # def gen_policy():
     #     return (None, obs_space, act_space)
 
-    stop = {"training_iteration": 2}
+    stop = {'episodes_total':10}
     rllib_config = {"env":sumoEnv,
                     "env_config":{},
                     "framework":"torch",
@@ -43,8 +43,7 @@ if __name__ == '__main__':
         ppo.PPO,
         param_space=rllib_config,
         run_config=air.RunConfig(
-            name='PPO_result',
-            stop=stop
+            stop=stop,
         )
     )
     tunner.fit()
