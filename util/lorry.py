@@ -90,6 +90,8 @@ class Lorry(object):
         # maintenance flag, when true, the engine start maintenance
         # default: False
         self.maintenance_flag = False
+        # episode flag
+        self.episode_flag = False
 
         # sensor reading
         self.sensor = pd.DataFrame({'s1':[],
@@ -126,13 +128,13 @@ class Lorry(object):
         self.product_record.at[self.time_step,'total_product'] = self.total_product
 
         # Check current location, if the vehicle remove by SUMO, add it first
-        try:
-            parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
-        except:
-            traci.vehicle.add(vehID=self.id,routeID=self.destination + '_to_'+ self.destination, typeID='lorry')
-            traci.vehicle.setParkingAreaStop(vehID=self.id,stopID=self.destination)
-            traci.vehicle.setColor(typeID=self.id,color=self.color)
-            parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
+        # try:
+        parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
+        # except:
+        #     traci.vehicle.add(vehID=self.id,routeID=self.destination + '_to_'+ self.destination, typeID='lorry')
+        #     traci.vehicle.setParkingAreaStop(vehID=self.id,stopID=self.destination)
+        #     traci.vehicle.setColor(typeID=self.id,color=self.color)
+        #     parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
 
         self.position = parking_state.stoppingPlaceID
         # Lorry maintenance
@@ -170,6 +172,9 @@ class Lorry(object):
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after repaired'])
+                
+                # terminate the episode
+                self.episode_flag = True
         # ignore the maintenance state
         elif self.mk_state > 3:
             pass
@@ -305,7 +310,7 @@ class Lorry(object):
             print(f'[repair] {self.id} back to state {self.mk_state}')
     
     def broken_repair(self):
-        lm = random.uniform
+        lm = random.uniform(0,1)
         if lm < self.mu1:
             self.state = self.recover_state
             self.mk_state = 0
@@ -316,6 +321,9 @@ class Lorry(object):
             with open(self.path,'a') as f:
                 f_csv = writer(f)
                 f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after broken'])
+            
+            # terminate the episode
+            self.episode_flag = True
         else:
             pass
         
@@ -350,6 +358,9 @@ class Lorry(object):
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after maintenance'])
+
+                # terminate the episode
+                self.episode_flag = True
                 return 'successful'
             else:
                 return 'try again'

@@ -1,5 +1,6 @@
 import ray
 from ray import tune, air
+from ray.tune.registry import register_env
 from ray.rllib.algorithms import dqn, ppo, sac
 # from ray.rllib.agents.dqn import DQNTrainer
 # from ray.rllib.agents.sac import SACTrainer
@@ -16,12 +17,25 @@ if __name__ == '__main__':
     #     }
     # )
     # algo.train()
+    # def env_creator():
+    #     return sumoEnv()
+    # env = env_creator()
+    # env_name = 'sumoEnv'
+    # register_env(env_name, env_creator)
+
+    # obs_space = env.observation_space
+    # act_space = env.action_space
+    # def gen_policy():
+    #     return (None, obs_space, act_space)
+
     stop = {"training_iteration": 2}
     rllib_config = {"env":sumoEnv,
                     "env_config":{},
                     "framework":"torch",
-                    "model":{
-                        "conv_filters":[[k,100,9] for k in range(1,13)]
+                    "num_workers":1,
+                    "multiagent":{
+                        "policies":{"shared_policy"},
+                        "policy_mapping_fn": (lambda agent_id, episode, **kwargs: "shared_policy"),
                     }
     }
 

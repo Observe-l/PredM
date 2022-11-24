@@ -1,14 +1,38 @@
 time,lorry id,MDP,state
-3601.0,lorry_0,6,maintenance
-3601.0,lorry_2,6,maintenance
+3601.0,lorry_0,7,maintenance
 3601.0,lorry_1,6,maintenance
-3601.0,lorry_2,6,maintenance
-3601.0,lorry_4,7,maintenance
-3601.0,lorry_6,7,maintenance
-3601.0,lorry_4,6,maintenance
-3601.0,lorry_7,6,maintenance
-3601.0,lorry_8,6,maintenance
+3601.0,lorry_3,6,maintenance
 3601.0,lorry_5,6,maintenance
-3601.0,lorry_11,6,maintenance
-3601.0,lorry_8,6,maintenance
-3601.0,lorry_11,6,maintenance
+3601.0,lorry_6,6,maintenance
+3601.0,lorry_7,6,maintenance
+3601.0,lorry_9,6,maintenance
+4201.0,lorry_0,0,recover after maintenance
+4201.0,lorry_2,6,maintenance
+4201.0,lorry_4,6,maintenance
+4201.0,lorry_8,6,maintenance
+4801.0,lorry_1,0,recover after maintenance
+4801.0,lorry_6,0,recover after maintenance
+5401.0,lorry_1,6,maintenance
+5401.0,lorry_6,6,maintenance
+6001.0,lorry_0,6,maintenance
+6001.0,lorry_6,0,recover after maintenance
+7201.0,lorry_6,6,maintenance
+7201.0,lorry_9,0,recover after maintenance
+8401.0,lorry_2,0,recover after maintenance
+8401.0,lorry_9,7,maintenance
+9001.0,lorry_2,7,maintenance
+9601.0,lorry_8,0,recover after maintenance
+10201.0,lorry_8,6,maintenance
+12601.0,lorry_1,0,recover after maintenance
+12601.0,lorry_3,0,recover after maintenance
+12601.0,lorry_9,0,recover after maintenance
+13201.0,lorry_1,6,maintenance
+13801.0,lorry_3,6,maintenance
+14401.0,lorry_9,6,maintenance
+16201.0,lorry_0,0,recover after maintenance
+16801.0,lorry_0,6,maintenance
+17401.0,lorry_7,0,recover after maintenance
+18001.0,lorry_7,6,maintenance
+18601.0,lorry_7,0,recover after maintenance
+19201.0,lorry_7,6,maintenance
+19801.0,lorry_3,0,recover after maintenance

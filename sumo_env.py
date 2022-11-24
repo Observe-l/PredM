@@ -1,5 +1,6 @@
 import gym
 from gym import spaces
+from ray.rllib.env.multi_agent_env import MultiAgentEnv
 from csv import writer
 from pathlib import Path
 import numpy as np
@@ -10,7 +11,7 @@ from util.lorry import Lorry
 from util.factory import Factory
 from util.product import product_management
 
-class sumoEnv(gym.Env):
+class sumoEnv(MultiAgentEnv):
     '''
     sumo environment. state is the engine state (or sensor reading), action is repaired or not
     '''
@@ -24,7 +25,8 @@ class sumoEnv(gym.Env):
         self.result_file = self.path + '/result.csv'
         
         # There are 2 actions: repaired or not
-        self.action_space = spaces.Tuple([spaces.Discrete(2) for _ in range(self.lorry_num)])
+        # self.action_space = spaces.Tuple([spaces.Discrete(2) for _ in range(self.lorry_num)])
+        self.action_space = spaces.Discrete(2)
         # mdp step, 10 min, unit is second
         self.mdp_step = 600
         # sumo step 86400*7
@@ -32,9 +34,12 @@ class sumoEnv(gym.Env):
         # sumo repeating times
         self.sumo_repeat = 0
         # observation space, 9 sensor reading
-        self.observation_space = spaces.Box(low=-10,high=10,shape=(self.lorry_num, 100, 9))
+        # self.observation_space = spaces.Box(low=-10,high=10,shape=(self.lorry_num, 100, 9))
+        self.observation_space = spaces.Box(low=-10,high=10,shape=(100,9))
         # init matlab model
         self.init_matlab()
+        # init sumo
+        self.init_sumo()
         # init record
         with open(self.result_file,'w') as f:
             f_csv = writer(f)
@@ -42,7 +47,18 @@ class sumoEnv(gym.Env):
         with open(self.lorry_file,'w') as f:
             f_csv = writer(f)
             f_csv.writerow(['time','lorry id','MDP','state'])
-        
+
+        self.sumo_repeat += 1
+        self.sumo_step = 0
+        self.step_num = 1
+        for _ in range(3600):
+            traci.simulationStep()
+            self.sumo_step += 1
+            current_time = traci.simulation.getTime()
+            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400*7, repair_flag=False) for tmp_lorry in self.lorry]
+            self.product.produce_load()
+            self.product.lorry_manage()
+    
 
     def init_matlab(self):
         # Connect to matlab & simulink model
@@ -87,32 +103,15 @@ class sumoEnv(gym.Env):
         self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
 
     def reset(self):
-        '''
-        reset the sumo map after 24 hours.
-        '''
-        self.sumo_repeat += 1
-        self.init_sumo()
-        self.done = False
-        self.sumo_step = 0
-        self.step_num = 1
-        for _ in range(3600):
-            traci.simulationStep()
-            self.sumo_step += 1
-            current_time = traci.simulation.getTime()
-            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400*7, repair_flag=False) for tmp_lorry in self.lorry]
-            self.product.produce_load()
-            self.product.lorry_manage()
         # lorry pool, only select normal lorry, i.e,. not 'broken'
         self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
-        # update the action space and observation space
-        self.action_space = spaces.Tuple([spaces.Discrete(2) for _ in range(len(self.lorry_pool))])
-        self.observation_space = spaces.Box(low=-10,high=10,shape=(len(self.lorry_pool), 100, 9))
     
         # Get column name
         self.tmp_col = self.lorry[0].sensor.columns[0:9]
-        # Read sensor reading
-        observation = np.array([tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry_pool])
-        # print(observation)
+        # Read sensor reading, obs is a dictionary, key is the lorry id
+        # observation = np.array([tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry])
+        observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry_pool}
+
         # update transported product
         current_time = traci.simulation.getTime()
         # Calculate the reward
@@ -121,10 +120,26 @@ class sumoEnv(gym.Env):
         reward = current_trans - last_trans
         return observation
     
-    def step(self, action):
+    def step(self, action_dict:dict):
+        done = {}
+        done["__all__"] = False
+        # lorry pool, only select normal lorry, i.e,. not 'broken'
+        self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
+        # RL should only select those normal lorries
+        # penalty_flag = False
         # action is a tuple. 0 
-        for tmp_idx in np.where(np.array(action))[0]:
-            self.lorry_pool[tmp_idx].maintenance_flag = True
+        for tmp_key in action_dict.keys():
+            if action_dict[tmp_key] == 1:
+                self.lorry[int(tmp_key[-1])].maintenance_flag = True
+
+
+        # for tmp_idx in np.where(np.array(action))[0]:
+        #     tmp_lorry = self.lorry[tmp_idx]
+        #     if tmp_lorry in self.lorry_pool:
+        #         tmp_lorry.maintenance_flag = True
+        #     else:
+        #         penalty_flag = True
+
         for _ in range(self.mdp_step):
             traci.simulationStep()
             self.sumo_step += 1
@@ -132,18 +147,17 @@ class sumoEnv(gym.Env):
             tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400*7, repair_flag=False) for tmp_lorry in self.lorry]
             self.product.produce_load()
             self.product.lorry_manage()
-        # lorry pool, only select normal lorry, i.e,. not 'broken'
+
         self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
-        # update the action space and observation space
-        self.action_space = spaces.Tuple([spaces.Discrete(2) for _ in range(len(self.lorry_pool))])
-        self.observation_space = spaces.Box(low=-10,high=10,shape=(len(self.lorry_pool), 100, 9))
 
         # Read sensor reading
-        observation = np.array([tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry_pool])
+        observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry_pool}
         # Get the reward, 1 hour
-        last_trans = np.sum([tmp_lorry.product_record.loc[current_time - 3600,'total_product'] for tmp_lorry in self.lorry])
-        current_trans = np.sum([tmp_lorry.product_record.loc[current_time,'total_product'] for tmp_lorry in self.lorry])
-        reward = current_trans - last_trans
+        reward = {}
+        for tmp_lorry in self.lorry_pool:
+            last_trans = tmp_lorry.product_record.loc[current_time - 3600,'total_product']
+            current_trans = tmp_lorry.product_record.loc[current_time,'total_product']
+            reward[tmp_lorry.id] = current_trans - last_trans
 
         # Record the result
         with open(self.result_file,'a') as f:
@@ -156,10 +170,14 @@ class sumoEnv(gym.Env):
             tmp_time = round((self.sumo_step / 3600)+(self.sumo_repeat-1)*7*24,3)
             f_csv.writerow([tmp_time,tmp_A,tmp_B,tmp_P12,tmp_P23,tmp_lorry])
 
-        if self.sumo_step >= 86400*7:
-            self.done = True
+        for tmp_lorry in self.lorry:
+            if tmp_lorry.episode_flag:
+                tmp_lorry.episode_flag = False
+                done["__all__"] = True
+        # if self.sumo_step >= 86400*7:
+        #     done["__all__"] = True
         
-        return observation, reward, self.done, {}
+        return observation, reward, done, {}
     
     def render(self):
         pass
