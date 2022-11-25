@@ -134,11 +134,7 @@ class sumoEnv(MultiAgentEnv):
         # Read sensor reading, obs is a dictionary, key is the lorry id
         # observation = np.array([tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry])
         observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry_pool}
-        
-        # Calculate the reward
-        last_trans = np.sum([tmp_lorry.product_record.loc[current_time - self.mdp_step,'total_product'] for tmp_lorry in self.lorry])
-        current_trans = np.sum([tmp_lorry.product_record.loc[current_time,'total_product'] for tmp_lorry in self.lorry])
-        reward = current_trans - last_trans
+
         # for tmp_lorry in self.lorry:
         #     self.done[tmp_lorry.id] = False
         return observation
@@ -151,7 +147,8 @@ class sumoEnv(MultiAgentEnv):
             if action_dict[tmp_key] == 1:
                 self.lorry[int(tmp_key[-1])].maintenance_flag = True
 
-
+        # get reward before step
+        last_trans = {tmp_lorry.id:tmp_lorry.total_product for tmp_lorry in self.lorry}
         for _ in range(self.mdp_step):
             traci.simulationStep()
             self.sumo_step += 1
@@ -179,7 +176,7 @@ class sumoEnv(MultiAgentEnv):
             tmp_P12 = round(self.factory[1].product.loc['P12','total'],3)
             tmp_P23 = round(self.factory[2].product.loc['P23','total'],3)
             tmp_lorry = len([i for i in self.lorry if i.state != 'broken' and i.state != 'repair' and i.state != 'maintenance'])
-            tmp_time = round((current_time + (self.sumo_repeat-1)*86400*7 / 3600)+(self.sumo_repeat-1)*7*24,3)
+            tmp_time = round(current_time / 3600 + (self.sumo_repeat-1)*7*24,3)
             f_csv.writerow([tmp_time,tmp_A,tmp_B,tmp_P12,tmp_P23,tmp_lorry])
 
         # for tmp_lorry in self.lorry:

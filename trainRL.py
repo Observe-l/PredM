@@ -28,7 +28,7 @@ if __name__ == '__main__':
     # def gen_policy():
     #     return (None, obs_space, act_space)
 
-    stop = {'episodes_total':10}
+    stop = {'episodes_total':140}
     rllib_config = {"env":sumoEnv,
                     "env_config":{},
                     "framework":"torch",
