@@ -184,7 +184,7 @@ class Lorry(object):
             self.state = 'delivery'
             if len(tmp_pk)>1:
                 try:
-                    print(f'{self.id}, {tmp_pk}')
+                    # print(f'{self.id}, {tmp_pk}')
                     traci.vehicle.resume(vehID=self.id)
                 except:
                     pass

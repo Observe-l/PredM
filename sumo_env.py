@@ -23,6 +23,7 @@ class sumoEnv(MultiAgentEnv):
         Path(self.path).mkdir(parents=True, exist_ok=True)
         self.lorry_file = self.path + '/lorry_record.csv'
         self.result_file = self.path + '/result.csv'
+        self.reward_file = self.path + 'reward.csv'
         
         # There are 2 actions: repaired or not
         # self.action_space = spaces.Tuple([spaces.Discrete(2) for _ in range(self.lorry_num)])
@@ -45,12 +46,16 @@ class sumoEnv(MultiAgentEnv):
         with open(self.lorry_file,'w') as f:
             f_csv = writer(f)
             f_csv.writerow(['time','lorry id','MDP','state'])
+        with open(self.reward_file,'w') as f:
+            f_csv = writer(f)
+            f_csv.writerow(['step','reward','cumulate reward'])
         
         self.done = {}
 
         self.episode_count = 0
         self.sumo_repeat += 1
         self.sumo_step = 0
+        self.step_num = 0
         for _ in range(self.mdp_step*2):
             traci.simulationStep()
             self.sumo_step += 1
@@ -116,6 +121,7 @@ class sumoEnv(MultiAgentEnv):
         return observation
     
     def step(self, action_dict:dict):
+        self.step_num += 1
         # lorry pool, only select normal lorry, i.e,. not 'broken'
         self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
         # action is a dictionary
@@ -140,8 +146,12 @@ class sumoEnv(MultiAgentEnv):
         # Get the reward, 1 hour
         reward = {}
         current_trans = {tmp_lorry.id:tmp_lorry.total_product for tmp_lorry in self.lorry}
+        tmp_reward = 0
+        tmp_cumulate = 0
         for tmp_lorry in self.lorry:
             reward[tmp_lorry.id] = current_trans[tmp_lorry.id] - last_trans[tmp_lorry.id]
+            tmp_reward += reward[tmp_lorry.id]
+            tmp_cumulate += current_trans[tmp_lorry.id]
 
         # Record the result
         with open(self.result_file,'a') as f:
@@ -153,6 +163,11 @@ class sumoEnv(MultiAgentEnv):
             tmp_lorry = len([i for i in self.lorry if i.state != 'broken' and i.state != 'repair' and i.state != 'maintenance'])
             tmp_time = round(current_time / 3600 + (self.sumo_repeat-1)*7*24,3)
             f_csv.writerow([tmp_time,tmp_A,tmp_B,tmp_P12,tmp_P23,tmp_lorry])
+        with open(self.reward_file,'a') as f:
+            f_csv =writer(f)
+            tmp_step = self.step_num
+            f_csv.writerow([tmp_step, tmp_reward, tmp_cumulate])
+
 
         # for tmp_lorry in self.lorry:
         #     if tmp_lorry.episode_flag:

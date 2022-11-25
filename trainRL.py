@@ -10,6 +10,7 @@ from sumo_env import sumoEnv
 def get_options():
     optParse = optparse.OptionParser()
     optParse.add_option("-a","--algorithm",default="PPO",type=str,help="PPO, DQN or SAC")
+    optParse.add_option("-w","--workers",default=4,type=int,help="number of workers")
     options, args = optParse.parse_args()
     return options
 
@@ -31,7 +32,7 @@ if __name__ == '__main__':
     rllib_config = {"env":sumoEnv,
                     "env_config":{"algo":folder},
                     "framework":"torch",
-                    "num_workers":2,
+                    "num_workers":options.workers,
                     "multiagent":{
                         "policies":{"shared_policy"},
                         "policy_mapping_fn": (lambda agent_id, episode, **kwargs: "shared_policy"),
