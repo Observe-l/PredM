@@ -2,37 +2,36 @@ import ray
 from ray import tune, air
 from ray.tune.registry import register_env
 from ray.rllib.algorithms import dqn, ppo, sac
-# from ray.rllib.agents.dqn import DQNTrainer
-# from ray.rllib.agents.sac import SACTrainer
-# from ray.rllib.agents.ppo import PPOTrainer
+
+import optparse
 
 from sumo_env import sumoEnv
 
-if __name__ == '__main__':
-    ray.init()
-    # algo = ppo.PPO(
-    #     env=sumoEnv,
-    #     config={
-    #         'env_config':{}
-    #     }
-    # )
-    # algo.train()
-    # def env_creator():
-    #     return sumoEnv()
-    # env = env_creator()
-    # env_name = 'sumoEnv'
-    # register_env(env_name, env_creator)
+def get_options():
+    optParse = optparse.OptionParser()
+    optParse.add_option("-a","--algorithm",default="PPO",type=str,help="PPO, DQN or SAC")
+    options, args = optParse.parse_args()
+    return options
 
-    # obs_space = env.observation_space
-    # act_space = env.action_space
-    # def gen_policy():
-    #     return (None, obs_space, act_space)
+if __name__ == '__main__':
+    options = get_options()
+    ray.init()
+
+    if options.algorithm == "DQN":
+        algo = dqn.DQN
+        folder = "DQN"
+    elif options.algorithm == "SAC":
+        algo = sac.SAC
+        folder = "SAC"
+    else:
+        algo = ppo.PPO
+        folder = "PPO"
 
     stop = {'episodes_total':140}
     rllib_config = {"env":sumoEnv,
-                    "env_config":{},
+                    "env_config":{"algo":folder},
                     "framework":"torch",
-                    "num_workers":1,
+                    "num_workers":2,
                     "multiagent":{
                         "policies":{"shared_policy"},
                         "policy_mapping_fn": (lambda agent_id, episode, **kwargs: "shared_policy"),
@@ -40,7 +39,7 @@ if __name__ == '__main__':
     }
 
     tunner = tune.Tuner(
-        ppo.PPO,
+        algo,
         param_space=rllib_config,
         run_config=air.RunConfig(
             stop=stop,

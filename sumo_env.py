@@ -1,11 +1,11 @@
 import gym
 from gym import spaces
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
+from ray.rllib.env.env_context import EnvContext
 from csv import writer
 from pathlib import Path
 import numpy as np
 import traci
-import matlab.engine as engine
 
 from util.lorry import Lorry
 from util.factory import Factory
@@ -15,10 +15,10 @@ class sumoEnv(MultiAgentEnv):
     '''
     sumo environment. state is the engine state (or sensor reading), action is repaired or not
     '''
-    def __init__(self, env_config):
+    def __init__(self, env_config:EnvContext):
         # 12 lorries
         self.lorry_num = 12
-        self.path = 'result/gym_12lorry__broken-3'
+        self.path = f'result/RL-' + env_config['algo'] + f'-worker{env_config.worker_index}'
         # Create folder
         Path(self.path).mkdir(parents=True, exist_ok=True)
         self.lorry_file = self.path + '/lorry_record.csv'
@@ -36,8 +36,6 @@ class sumoEnv(MultiAgentEnv):
         # observation space, 9 sensor reading
         # self.observation_space = spaces.Box(low=-10,high=10,shape=(self.lorry_num, 100, 9))
         self.observation_space = spaces.Box(low=-10,high=10,shape=(100,9))
-        # init matlab model
-        self.init_matlab()
         # init sumo
         self.init_sumo()
         # init record
@@ -61,28 +59,6 @@ class sumoEnv(MultiAgentEnv):
             self.product.produce_load()
             self.product.lorry_manage()
     
-
-    def init_matlab(self):
-        # Connect to matlab & simulink model
-        self.mdl = 'transmission_fault_detection'
-        self.eng = engine.connect_matlab()
-        try:
-            stop_time = self.eng.evalin('base', 'Tend')
-            print('Connect to current MATLAB session')
-        except:
-            print('No running session, create new MATLAB session')
-            print('Starting Simulink')
-            self.eng.open_system(self.mdl,nargout=0)
-            stop_time = self.eng.evalin('base', 'Tend')
-        # Enable faster start and compiler the model
-        print('Compiling the model')
-        self.eng.set_param(self.mdl,'FastRestart','on',nargout=0)
-        out = self.eng.sim(self.mdl)
-
-        # Initial the model
-        clutch = -1*np.ones(6,dtype=np.int64)
-        self.eng.set_param(self.mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
-    
     def init_sumo(self):
         # Close existing traci connection
         try:
@@ -91,7 +67,7 @@ class sumoEnv(MultiAgentEnv):
             pass
         traci.start(["sumo", "-c", "map/3km_1week/osm.sumocfg","--threads","8"])
         # Create lorry
-        self.lorry = [Lorry(lorry_id=f'lorry_{i}', eng=self.eng, mdl=self.mdl, path=self.path, capacity=0.5,
+        self.lorry = [Lorry(lorry_id=f'lorry_{i}', path=self.path, capacity=0.5,
                     time_broken=int(3*86400), env_step=self.mdp_step) for i in range(self.lorry_num)]
         # Create factory
         self.factory = [Factory(factory_id='Factory0', produce_rate=[['P1',0.05,None,None]]),
@@ -163,10 +139,9 @@ class sumoEnv(MultiAgentEnv):
         observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry_pool}
         # Get the reward, 1 hour
         reward = {}
+        current_trans = {tmp_lorry.id:tmp_lorry.total_product for tmp_lorry in self.lorry}
         for tmp_lorry in self.lorry:
-            last_trans = tmp_lorry.product_record.loc[current_time - self.mdp_step,'total_product']
-            current_trans = tmp_lorry.product_record.loc[current_time,'total_product']
-            reward[tmp_lorry.id] = current_trans - last_trans
+            reward[tmp_lorry.id] = current_trans[tmp_lorry.id] - last_trans[tmp_lorry.id]
 
         # Record the result
         with open(self.result_file,'a') as f:

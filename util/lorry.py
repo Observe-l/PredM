@@ -57,8 +57,6 @@ class Lorry(object):
         self.time_step = 0
         # record total transported product
         self.total_product = 0.0
-        self.product_record = pd.DataFrame({'time':[0.0], 'total_product':[0.0]})
-        self.product_record.set_index(['time'], inplace=True)
 
         # self.reward = pd.DataFrame({'time':[0.0], 'total_product':[0.0]})
         # self.reward.set_index(['time'], inplace=True)
@@ -108,6 +106,7 @@ class Lorry(object):
                                     's9':[],
                                     'MDPstate':[]
         })
+        self.sensor_store = pd.read_csv('sensor.csv',index_col=0)
 
     
     def update_lorry(self, capacity:float = 10000.0, weight:float = 0.0,\
@@ -121,17 +120,13 @@ class Lorry(object):
         self.state = state
         self.position = position
         self.destination = destination
-    
-    # def record_reward(self):
-    #     self.product_record.at[self.time_step,'total_product'] = self.total_product
+
 
     def refresh_state(self,time_step, repair_flag) -> dict:
         '''
         get current state, refresh state
         '''
         self.time_step = time_step
-        # record the transported product
-        self.product_record.at[self.time_step,'total_product'] = self.total_product
 
         # Check current location, if the vehicle remove by SUMO, add it first
         try:
@@ -140,12 +135,12 @@ class Lorry(object):
         except:
             print(f'{self.id}, position:{self.position}, destination:{self.destination}, parking: {traci.vehicle.getStops(vehID=self.id)}, state: {self.state}')
             print(f'weight: {self.weight}, mdp state: {self.mk_state}')
-            parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
-        # except:
-        #     traci.vehicle.add(vehID=self.id,routeID=self.destination + '_to_'+ self.destination, typeID='lorry')
-        #     traci.vehicle.setParkingAreaStop(vehID=self.id,stopID=self.destination)
-        #     traci.vehicle.setColor(typeID=self.id,color=self.color)
-        #     parking_state = traci.vehicle.getStops(vehID=self.id)[-1]
+            traci.vehicle.remove(vehID=self.id)
+            traci.vehicle.add(vehID=self.id,routeID=self.destination + '_to_'+ self.destination, typeID='lorry')
+            traci.vehicle.setParkingAreaStop(vehID=self.id,stopID=self.destination)
+            traci.vehicle.setColor(typeID=self.id,color=self.color)
+            tmp_pk = traci.vehicle.getStops(vehID=self.id)
+            parking_state = tmp_pk[-1]
 
         self.position = parking_state.stoppingPlaceID
 
@@ -159,19 +154,6 @@ class Lorry(object):
         # Repair the engine
         if repair_flag:
             self.repair()
-        # if self.state == 'broken':
-        #     self.step_repair += 1
-        #     # Repair the lorry, spend 1 day
-        #     if self.step_repair % self.time_broken == 0:
-        #         self.state = self.recover_state
-        #         self.mk_state = 0
-        #         self.step += 1
-        #         # In sumo the lorry resume from stop
-        #         traci.vehicle.resume(vehID=self.id)
-        #         print(f'[recover] {self.id}')
-        #         with open(self.path,'a') as f:
-        #             f_csv = writer(f)
-        #             f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after broken'])
 
         if self.state == 'broken' and self.time_step % self.state_trans == 1:
             self.broken_repair()
@@ -196,6 +178,12 @@ class Lorry(object):
             pass
         elif parking_state.arrival < 0:
             self.state = 'delivery'
+            if len(tmp_pk)>1:
+                try:
+                    print(f'{self.id}, {tmp_pk}')
+                    traci.vehicle.resume(vehID=self.id)
+                except:
+                    pass
             self.step += 1
         elif self.weight == self.capacity and self.position == self.destination:
             self.state = 'pending for unloading'
@@ -333,7 +321,10 @@ class Lorry(object):
             self.step += 1
             # In sumo the lorry resume from stop
             if self.state == 'delivery':
-                traci.vehicle.resume(vehID=self.id)
+                try:
+                    traci.vehicle.resume(vehID=self.id)
+                except:
+                    pass
             print(f'[recover] {self.id}')
             with open(self.path,'a') as f:
                 f_csv = writer(f)
@@ -371,7 +362,10 @@ class Lorry(object):
                 self.state = self.recover_state
                 # In sumo the lorry resume from stop
                 if self.state == 'delivery':
-                    traci.vehicle.resume(vehID=self.id)
+                    try:
+                        traci.vehicle.resume(vehID=self.id)
+                    except:
+                        pass
                 self.maintenance_flag = False
                 print(f'[recover] {self.id}')
                 with open(self.path,'a') as f:
@@ -414,51 +408,5 @@ class Lorry(object):
         else:
             self.mk_state = self.mk_state
         print(f'[MDP state] {self.id} state: {self.mk_state}, time:{self.time_step}')
+        self.sensor = self.sensor_store.loc[self.sensor_store['MDPstate']==self.mk_state]
         
-        # Clutch fault injection
-        if self.mk_state == 0:
-            clutch = np.array([-1,-1,-1,-1,-1,-1],dtype=np.int64)
-        elif self.mk_state == 1:
-            clutch = np.array([1,-1,-1,-1,-1,-1],dtype=np.int64)
-        elif self.mk_state == 2:
-            clutch = np.array([-1, 1, 1,-1,-1,-1],dtype=np.int64)
-        elif self.mk_state == 3:
-            clutch = np.array([-1,-1,-1, 1, 1, 0],dtype=np.int64)
-        elif self.mk_state == 4:
-            clutch = np.array([0, 0,-1,-1, 1, 1],dtype=np.int64)
-        elif self.mk_state == 5:
-            clutch = np.array([0,0,0,0,0,0],dtype=np.int64)
-
-        # Simulation
-        splid_len = 100
-        try:
-            self.eng.set_param(self.mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
-        except:
-            print(f'{self.id}, mdp: {self.mk_state}, time: {self.time_step}, state: {self.state}')
-            self.eng.set_param(self.mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
-        out = self.eng.sim(self.mdl)
-        # Get time
-        idx = [{'type':'.','subs':'yout'},{'type':'{}','subs':[2]},{'type':'.','subs':'Values'},{'type':'.','subs':'Time'}]
-        tmp_out = out
-        for tmp_idx in idx:
-            tmp_out = self.eng.subsref(tmp_out,tmp_idx)
-        actual_time = np.array(tmp_out)
-
-        # Get actual drive ratio
-        idx = [{'type':'.','subs':'yout'},{'type':'{}','subs':[2]},{'type':'.','subs':'Values'},{'type':'.','subs':'Data'}]
-        tmp_out = out
-        for tmp_idx in idx:
-            tmp_out = self.eng.subsref(tmp_out,tmp_idx)
-        actual_dr = np.array(tmp_out)
-
-        for _ in range(splid_len):
-            tmp_idx = [np.where(actual_time <= 4*i + 4/splid_len)[0][-1] for i in range(9)]
-            tmp_act_dr = actual_dr[tmp_idx]
-            tmp_sensor=pd.DataFrame(tmp_act_dr.T,columns=['s1','s2','s3','s4','s5','s6','s7','s8','s9'])
-            tmp_sensor['MDPstate'] = self.mk_state
-            self.sensor=pd.concat([self.sensor,tmp_sensor],ignore_index=True)
-        
-
-
-
-
