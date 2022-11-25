@@ -133,9 +133,13 @@ class Lorry(object):
             tmp_pk = traci.vehicle.getStops(vehID=self.id)
             parking_state = tmp_pk[-1]
         except:
-            print(f'{self.id}, position:{self.position}, destination:{self.destination}, parking: {traci.vehicle.getStops(vehID=self.id)}, state: {self.state}')
-            print(f'weight: {self.weight}, mdp state: {self.mk_state}')
-            traci.vehicle.remove(vehID=self.id)
+            try:
+                print(f'{self.id}, position:{self.position}, destination:{self.destination}, parking: {traci.vehicle.getStops(vehID=self.id)}, state: {self.state}')
+                print(f'weight: {self.weight}, mdp state: {self.mk_state}')
+                traci.vehicle.remove(vehID=self.id)
+            except:
+                print(f'{self.id} has been deleted')
+                print(f'weight: {self.weight}, mdp state: {self.mk_state}')
             traci.vehicle.add(vehID=self.id,routeID=self.destination + '_to_'+ self.destination, typeID='lorry')
             traci.vehicle.setParkingAreaStop(vehID=self.id,stopID=self.destination)
             traci.vehicle.setColor(typeID=self.id,color=self.color)
@@ -240,8 +244,10 @@ class Lorry(object):
                     tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx+1]
                     traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=25)
                 except:
-                    tmp_edge = traci.vehicle.getRoute(vehID=self.id)[tmp_idx+2]
-                    traci.vehicle.setStop(vehID=self.id,edgeID=tmp_edge,pos=0)
+                    if self.weight == 0:
+                        self.recover_state = 'waitting'
+                    else:
+                        self.recover_state = 'pending for unloading'
 
     def delivery(self, destination:str) -> None:
         '''
@@ -396,7 +402,7 @@ class Lorry(object):
         If lm > 0.666558, Markov state pluse 1
         Otherwise, no change
         '''
-        self.sensor.drop(self.sensor.index, inplace=True)
+        # self.sensor.drop(self.sensor.index, inplace=True)
         lm = random.uniform(0,1)
         if self.mk_state < 4:
             if lm < self.threshold1:

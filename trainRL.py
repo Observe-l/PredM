@@ -43,6 +43,9 @@ if __name__ == '__main__':
         param_space=rllib_config,
         run_config=air.RunConfig(
             stop=stop,
+            checkpoint_config=air.CheckpointConfig(
+                num_to_keep=5
+            ),
         )
     )
     tunner.fit()
