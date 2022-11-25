@@ -1699,3 +1699,352 @@ time,lorry id,MDP,state
 1215601.0,lorry_8,6,maintenance
 1216201.0,lorry_9,0,recover after maintenance
 1216801.0,lorry_9,6,maintenance
+1217401.0,lorry_4,0,recover after maintenance
+1218001.0,lorry_1,0,recover after maintenance
+1218001.0,lorry_4,6,maintenance
+1218001.0,lorry_8,0,recover after maintenance
+1219201.0,lorry_1,6,maintenance
+1219201.0,lorry_7,0,recover after maintenance
+1219201.0,lorry_8,6,maintenance
+1221001.0,lorry_3,0,recover after maintenance
+1221001.0,lorry_4,0,recover after maintenance
+1221001.0,lorry_5,0,recover after maintenance
+1221001.0,lorry_7,6,maintenance
+1222201.0,lorry_5,6,maintenance
+1222801.0,lorry_3,6,maintenance
+1222801.0,lorry_7,0,recover after maintenance
+1224001.0,lorry_1,0,recover after maintenance
+1224001.0,lorry_4,6,maintenance
+1224001.0,lorry_7,6,maintenance
+1224601.0,lorry_1,6,maintenance
+1225201.0,lorry_4,0,recover after maintenance
+1226401.0,lorry_5,0,recover after maintenance
+1227001.0,lorry_5,6,maintenance
+1228801.0,lorry_2,0,recover after maintenance
+1229401.0,lorry_2,6,maintenance
+1230001.0,lorry_4,6,maintenance
+1237801.0,lorry_4,0,recover after maintenance
+1238401.0,lorry_4,6,maintenance
+1239001.0,lorry_1,0,recover after maintenance
+1239601.0,lorry_6,0,recover after maintenance
+1240801.0,lorry_1,6,maintenance
+1241401.0,lorry_6,6,maintenance
+1242601.0,lorry_5,0,recover after maintenance
+1242601.0,lorry_7,0,recover after maintenance
+1243801.0,lorry_5,6,maintenance
+1245001.0,lorry_7,6,maintenance
+1246201.0,lorry_0,0,recover after maintenance
+1246201.0,lorry_5,0,recover after maintenance
+1246801.0,lorry_0,6,maintenance
+1246801.0,lorry_5,6,maintenance
+1247401.0,lorry_3,0,recover after maintenance
+1248001.0,lorry_6,0,recover after maintenance
+1248601.0,lorry_6,6,maintenance
+1249201.0,lorry_3,6,maintenance
+1249201.0,lorry_5,0,recover after maintenance
+1251001.0,lorry_5,6,maintenance
+1251601.0,lorry_7,0,recover after maintenance
+1252201.0,lorry_5,0,recover after maintenance
+1253401.0,lorry_7,6,maintenance
+1255201.0,lorry_2,0,recover after maintenance
+1255201.0,lorry_5,6,maintenance
+1255201.0,lorry_6,0,recover after maintenance
+1255201.0,lorry_9,0,recover after maintenance
+1256401.0,lorry_6,6,maintenance
+1257001.0,lorry_2,6,maintenance
+1257601.0,lorry_0,0,recover after maintenance
+1257601.0,lorry_9,7,maintenance
+1258801.0,lorry_6,0,recover after maintenance
+1259401.0,lorry_0,6,maintenance
+1261201.0,lorry_8,0,recover after maintenance
+1262401.0,lorry_6,6,maintenance
+1262401.0,lorry_9,0,recover after maintenance
+1264201.0,lorry_8,6,maintenance
+1267201.0,lorry_4,0,recover after maintenance
+1267201.0,lorry_9,6,maintenance
+1269001.0,lorry_5,0,recover after maintenance
+1269601.0,lorry_4,6,maintenance
+1270201.0,lorry_4,0,recover after maintenance
+1270801.0,lorry_4,6,maintenance
+1271401.0,lorry_5,6,maintenance
+1273801.0,lorry_4,0,recover after maintenance
+1275001.0,lorry_4,6,maintenance
+1275601.0,lorry_3,0,recover after maintenance
+1275601.0,lorry_7,0,recover after maintenance
+1276201.0,lorry_3,6,maintenance
+1276201.0,lorry_7,6,maintenance
+1278601.0,lorry_2,0,recover after maintenance
+1278601.0,lorry_3,0,recover after maintenance
+1279201.0,lorry_2,6,maintenance
+1280401.0,lorry_3,6,maintenance
+1281001.0,lorry_3,0,recover after maintenance
+1283401.0,lorry_1,0,recover after maintenance
+1283401.0,lorry_3,6,maintenance
+1284001.0,lorry_1,6,maintenance
+1288201.0,lorry_2,0,recover after maintenance
+1288801.0,lorry_2,6,maintenance
+1288801.0,lorry_6,0,recover after maintenance
+1289401.0,lorry_6,6,maintenance
+1290001.0,lorry_5,0,recover after maintenance
+1290601.0,lorry_2,0,recover after maintenance
+1290601.0,lorry_5,7,maintenance
+1291201.0,lorry_2,6,maintenance
+1292401.0,lorry_1,0,recover after maintenance
+1293601.0,lorry_0,0,recover after maintenance
+1294201.0,lorry_1,6,maintenance
+1294801.0,lorry_0,6,maintenance
+1296001.0,lorry_5,0,recover after maintenance
+1296601.0,lorry_5,6,maintenance
+1296601.0,lorry_7,0,recover after maintenance
+1298401.0,lorry_8,0,recover after maintenance
+1299601.0,lorry_8,6,maintenance
+1300201.0,lorry_7,6,maintenance
+1302001.0,lorry_7,0,recover after maintenance
+1302001.0,lorry_9,0,recover after maintenance
+1303201.0,lorry_4,0,recover after maintenance
+1303801.0,lorry_2,0,recover after maintenance
+1305001.0,lorry_2,6,maintenance
+1305001.0,lorry_4,6,maintenance
+1305601.0,lorry_3,0,recover after maintenance
+1305601.0,lorry_7,7,maintenance
+1306201.0,lorry_3,6,maintenance
+1306801.0,lorry_5,0,recover after maintenance
+1309201.0,lorry_9,6,maintenance
+1311001.0,lorry_4,0,recover after maintenance
+1312201.0,lorry_4,6,maintenance
+1312801.0,lorry_5,7,maintenance
+1314601.0,lorry_7,0,recover after maintenance
+1317001.0,lorry_6,0,recover after maintenance
+1319401.0,lorry_7,6,maintenance
+1319401.0,lorry_8,0,recover after maintenance
+1320001.0,lorry_8,6,maintenance
+1320601.0,lorry_2,0,recover after maintenance
+1321201.0,lorry_7,0,recover after maintenance
+1321801.0,lorry_6,7,maintenance
+1321801.0,lorry_7,6,maintenance
+1321801.0,lorry_8,0,recover after maintenance
+1322401.0,lorry_3,0,recover after maintenance
+1322401.0,lorry_8,6,maintenance
+1323001.0,lorry_2,6,maintenance
+1323601.0,lorry_3,6,maintenance
+1324801.0,lorry_2,0,recover after maintenance
+1325401.0,lorry_2,6,maintenance
+1326601.0,lorry_0,0,recover after maintenance
+1326601.0,lorry_9,0,recover after maintenance
+1327201.0,lorry_9,6,maintenance
+1327801.0,lorry_0,6,maintenance
+1328401.0,lorry_5,0,recover after maintenance
+1329601.0,lorry_4,0,recover after maintenance
+1332601.0,lorry_1,0,recover after maintenance
+1333201.0,lorry_5,6,maintenance
+1333801.0,lorry_1,6,maintenance
+1334401.0,lorry_4,6,maintenance
+1336201.0,lorry_1,0,recover after maintenance
+1336801.0,lorry_1,6,maintenance
+1338001.0,lorry_6,0,recover after maintenance
+1338001.0,lorry_9,0,recover after maintenance
+1339201.0,lorry_9,6,maintenance
+1341601.0,lorry_6,6,maintenance
+1344001.0,lorry_5,0,recover after maintenance
+1344601.0,lorry_4,0,recover after maintenance
+1347001.0,lorry_1,0,recover after maintenance
+1347001.0,lorry_4,6,maintenance
+1347601.0,lorry_1,6,maintenance
+1348801.0,lorry_1,0,recover after maintenance
+1349401.0,lorry_0,0,recover after maintenance
+1349401.0,lorry_1,7,maintenance
+1350001.0,lorry_0,6,maintenance
+1350601.0,lorry_6,0,recover after maintenance
+1352401.0,lorry_5,6,maintenance
+1352858.0,lorry_11,5,broken
+1353001.0,lorry_0,0,recover after maintenance
+1353001.0,lorry_6,6,maintenance
+1354201.0,lorry_0,6,maintenance
+1354201.0,lorry_7,0,recover after maintenance
+1356601.0,lorry_7,6,maintenance
+1357201.0,lorry_1,0,recover after maintenance
+1358401.0,lorry_3,0,recover after maintenance
+1358401.0,lorry_6,0,recover after maintenance
+1359001.0,lorry_1,6,maintenance
+1359001.0,lorry_3,6,maintenance
+1360201.0,lorry_7,0,recover after maintenance
+1360201.0,lorry_8,0,recover after maintenance
+1360801.0,lorry_4,0,recover after maintenance
+1360801.0,lorry_7,7,maintenance
+1361401.0,lorry_8,6,maintenance
+1362001.0,lorry_4,6,maintenance
+1362001.0,lorry_6,6,maintenance
+1362456.0,lorry_10,4,broken
+1369801.0,lorry_1,0,recover after maintenance
+1369801.0,lorry_4,0,recover after maintenance
+1371001.0,lorry_1,6,maintenance
+1372201.0,lorry_4,6,maintenance
+1373401.0,lorry_8,0,recover after maintenance
+1374001.0,lorry_1,0,recover after maintenance
+1375201.0,lorry_2,0,recover after maintenance
+1375201.0,lorry_8,6,maintenance
+1376401.0,lorry_1,6,maintenance
+1377601.0,lorry_2,6,maintenance
+1377601.0,lorry_3,0,recover after maintenance
+1380001.0,lorry_8,0,recover after maintenance
+1380601.0,lorry_3,6,maintenance
+1381201.0,lorry_7,0,recover after maintenance
+1381201.0,lorry_8,6,maintenance
+1381801.0,lorry_9,0,recover after maintenance
+1382401.0,lorry_7,6,maintenance
+1383001.0,lorry_8,0,recover after maintenance
+1384201.0,lorry_5,0,recover after maintenance
+1384201.0,lorry_9,6,maintenance
+1385401.0,lorry_5,6,maintenance
+1385401.0,lorry_8,6,maintenance
+1387201.0,lorry_8,0,recover after maintenance
+1387801.0,lorry_5,0,recover after maintenance
+1387801.0,lorry_8,6,maintenance
+1389601.0,lorry_5,6,maintenance
+1389601.0,lorry_8,0,recover after maintenance
+1390201.0,lorry_8,6,maintenance
+1391401.0,lorry_0,0,recover after maintenance
+1392001.0,lorry_7,0,recover after maintenance
+1392001.0,lorry_9,0,recover after maintenance
+1392601.0,lorry_1,0,recover after maintenance
+1393201.0,lorry_0,6,maintenance
+1393201.0,lorry_1,6,maintenance
+1395001.0,lorry_2,0,recover after maintenance
+1396201.0,lorry_7,6,maintenance
+1396801.0,lorry_9,7,maintenance
+1398001.0,lorry_0,0,recover after maintenance
+1398601.0,lorry_2,6,maintenance
+1400401.0,lorry_0,6,maintenance
+1401001.0,lorry_9,0,recover after maintenance
+1401601.0,lorry_7,0,recover after maintenance
+1406401.0,lorry_9,6,maintenance
+1407001.0,lorry_7,7,maintenance
+1407601.0,lorry_0,0,recover after maintenance
+1408201.0,lorry_0,6,maintenance
+1411201.0,lorry_6,0,recover after maintenance
+1412401.0,lorry_6,6,maintenance
+1413001.0,lorry_9,0,recover after maintenance
+1413601.0,lorry_5,0,recover after maintenance
+1413601.0,lorry_9,6,maintenance
+1414801.0,lorry_4,0,recover after maintenance
+1414801.0,lorry_5,6,maintenance
+1415401.0,lorry_0,0,recover after maintenance
+1416001.0,lorry_0,6,maintenance
+1416001.0,lorry_4,6,maintenance
+1418401.0,lorry_7,0,recover after maintenance
+1419001.0,lorry_9,0,recover after maintenance
+1419601.0,lorry_4,0,recover after maintenance
+1419601.0,lorry_8,0,recover after maintenance
+1419601.0,lorry_9,6,maintenance
+1420201.0,lorry_3,0,recover after maintenance
+1420801.0,lorry_3,6,maintenance
+1420801.0,lorry_9,0,recover after maintenance
+1421401.0,lorry_7,7,maintenance
+1422601.0,lorry_2,0,recover after maintenance
+1423201.0,lorry_8,6,maintenance
+1423801.0,lorry_9,6,maintenance
+1425001.0,lorry_0,0,recover after maintenance
+1425001.0,lorry_4,7,maintenance
+1425601.0,lorry_0,6,maintenance
+1425601.0,lorry_4,0,recover after maintenance
+1425601.0,lorry_6,0,recover after maintenance
+1426201.0,lorry_6,6,maintenance
+1426201.0,lorry_8,0,recover after maintenance
+1427401.0,lorry_2,6,maintenance
+1427401.0,lorry_8,6,maintenance
+1428001.0,lorry_0,0,recover after maintenance
+1428601.0,lorry_4,6,maintenance
+1429201.0,lorry_0,6,maintenance
+1430401.0,lorry_5,0,recover after maintenance
+1431601.0,lorry_5,6,maintenance
+1435201.0,lorry_8,0,recover after maintenance
+1435801.0,lorry_4,0,recover after maintenance
+1436401.0,lorry_8,6,maintenance
+1437001.0,lorry_4,7,maintenance
+1438801.0,lorry_6,0,recover after maintenance
+1439401.0,lorry_6,6,maintenance
+1441201.0,lorry_3,0,recover after maintenance
+1441801.0,lorry_3,6,maintenance
+1443601.0,lorry_4,0,recover after maintenance
+1444201.0,lorry_8,0,recover after maintenance
+1444801.0,lorry_4,6,maintenance
+1447201.0,lorry_8,6,maintenance
+1448401.0,lorry_9,0,recover after maintenance
+1449601.0,lorry_9,6,maintenance
+1452601.0,lorry_0,0,recover after maintenance
+1453201.0,lorry_6,0,recover after maintenance
+1453801.0,lorry_0,6,maintenance
+1454401.0,lorry_5,0,recover after maintenance
+1454401.0,lorry_6,6,maintenance
+1455601.0,lorry_5,6,maintenance
+1458001.0,lorry_0,0,recover after maintenance
+1458601.0,lorry_0,6,maintenance
+1463401.0,lorry_6,0,recover after maintenance
+1464001.0,lorry_7,0,recover after maintenance
+1464601.0,lorry_7,6,maintenance
+1465201.0,lorry_3,0,recover after maintenance
+1465201.0,lorry_7,0,recover after maintenance
+1465801.0,lorry_2,0,recover after maintenance
+1465801.0,lorry_3,6,maintenance
+1466401.0,lorry_0,0,recover after maintenance
+1467001.0,lorry_7,6,maintenance
+1467601.0,lorry_2,6,maintenance
+1468801.0,lorry_0,6,maintenance
+1469401.0,lorry_6,7,maintenance
+1471201.0,lorry_6,0,recover after maintenance
+1472401.0,lorry_6,6,maintenance
+1475401.0,lorry_1,0,recover after maintenance
+1476001.0,lorry_0,0,recover after maintenance
+1476601.0,lorry_1,6,maintenance
+1477201.0,lorry_0,6,maintenance
+1479001.0,lorry_7,0,recover after maintenance
+1479601.0,lorry_7,6,maintenance
+1482001.0,lorry_1,0,recover after maintenance
+1483201.0,lorry_1,6,maintenance
+1484401.0,lorry_9,0,recover after maintenance
+1486201.0,lorry_7,0,recover after maintenance
+1487401.0,lorry_3,0,recover after maintenance
+1487401.0,lorry_7,6,maintenance
+1488001.0,lorry_9,6,maintenance
+1489201.0,lorry_3,6,maintenance
+1489801.0,lorry_6,0,recover after maintenance
+1489801.0,lorry_8,0,recover after maintenance
+1492201.0,lorry_8,6,maintenance
+1492801.0,lorry_6,7,maintenance
+1492801.0,lorry_9,0,recover after maintenance
+1494001.0,lorry_7,0,recover after maintenance
+1494601.0,lorry_5,0,recover after maintenance
+1495201.0,lorry_7,7,maintenance
+1495801.0,lorry_2,0,recover after maintenance
+1496401.0,lorry_2,6,maintenance
+1496401.0,lorry_4,0,recover after maintenance
+1496401.0,lorry_9,6,maintenance
+1497601.0,lorry_4,6,maintenance
+1498201.0,lorry_5,6,maintenance
+1498201.0,lorry_6,0,recover after maintenance
+1498801.0,lorry_2,0,recover after maintenance
+1498801.0,lorry_9,0,recover after maintenance
+1499401.0,lorry_6,6,maintenance
+1500001.0,lorry_2,6,maintenance
+1500601.0,lorry_1,0,recover after maintenance
+1501201.0,lorry_6,0,recover after maintenance
+1501801.0,lorry_9,6,maintenance
+1502401.0,lorry_1,7,maintenance
+1502401.0,lorry_6,6,maintenance
+1502401.0,lorry_7,0,recover after maintenance
+1503001.0,lorry_7,6,maintenance
+1503601.0,lorry_7,0,recover after maintenance
+1507801.0,lorry_7,6,maintenance
+1509001.0,lorry_2,0,recover after maintenance
+1509601.0,lorry_0,0,recover after maintenance
+1510201.0,lorry_2,6,maintenance
+1511401.0,lorry_0,6,maintenance
+1512001.0,lorry_2,0,recover after maintenance
+1513801.0,lorry_2,7,maintenance
+1515601.0,lorry_5,0,recover after maintenance
+1515601.0,lorry_8,0,recover after maintenance
+1516801.0,lorry_0,0,recover after maintenance
+1517401.0,lorry_0,6,maintenance
+1517401.0,lorry_5,7,maintenance
+1518001.0,lorry_8,6,maintenance
+1524001.0,lorry_5,0,recover after maintenance

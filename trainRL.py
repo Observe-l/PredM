@@ -28,11 +28,13 @@ if __name__ == '__main__':
         algo = ppo.PPO
         folder = "PPO"
 
-    stop = {'episodes_total':140}
+    stop = {'episodes_total':200000}
     rllib_config = {"env":sumoEnv,
                     "env_config":{"algo":folder},
                     "framework":"torch",
                     "num_workers":options.workers,
+                    "ignore_worker_failures":True,
+                    "recreate_failed_workers":True,
                     "multiagent":{
                         "policies":{"shared_policy"},
                         "policy_mapping_fn": (lambda agent_id, episode, **kwargs: "shared_policy"),
@@ -45,7 +47,8 @@ if __name__ == '__main__':
         run_config=air.RunConfig(
             stop=stop,
             checkpoint_config=air.CheckpointConfig(
-                num_to_keep=5
+                num_to_keep=5,
+                checkpoint_frequency=2
             ),
         )
     )

@@ -28,17 +28,19 @@ class sumoEnv(MultiAgentEnv):
         # There are 2 actions: repaired or not
         # self.action_space = spaces.Tuple([spaces.Discrete(2) for _ in range(self.lorry_num)])
         self.action_space = spaces.Discrete(2)
-        # mdp step, 10 min, unit is second
+        # mdp step, 1 min, unit is second
         self.mdp_step = 600
         # sumo step 86400*7
-        self.sumo_step = 0
         # sumo repeating times
         self.sumo_repeat = 0
         # observation space, 9 sensor reading
         # self.observation_space = spaces.Box(low=-10,high=10,shape=(self.lorry_num, 100, 9))
         self.observation_space = spaces.Box(low=-10,high=10,shape=(100,9))
         # init sumo
-        self.init_sumo()
+        self.done = {}
+
+        self.episode_count = 0
+        self.step_num = 0
         # init record
         with open(self.result_file,'w') as f:
             f_csv = writer(f)
@@ -50,19 +52,8 @@ class sumoEnv(MultiAgentEnv):
             f_csv = writer(f)
             f_csv.writerow(['step','reward','cumulate reward'])
         
-        self.done = {}
 
-        self.episode_count = 0
-        self.sumo_repeat += 1
-        self.sumo_step = 0
-        self.step_num = 0
-        for _ in range(self.mdp_step*2):
-            traci.simulationStep()
-            self.sumo_step += 1
-            current_time = traci.simulation.getTime()
-            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400*7, repair_flag=False) for tmp_lorry in self.lorry]
-            self.product.produce_load()
-            self.product.lorry_manage()
+
     
     def init_sumo(self):
         # Close existing traci connection
@@ -82,31 +73,23 @@ class sumoEnv(MultiAgentEnv):
                 ]
         # The lorry and factory mamanent
         self.product = product_management(self.factory, self.lorry)
-        # lorry pool, only select normal lorry, i.e,. not 'broken'
-        self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
+
+        for _ in range(self.mdp_step*2):
+            traci.simulationStep()
+            current_time = traci.simulation.getTime()
+            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400*7, repair_flag=False) for tmp_lorry in self.lorry]
+            self.product.produce_load()
+            self.product.lorry_manage()
 
     def reset(self):
-        self.done['__all__'] = False
         # Reset episode
-        if self.sumo_step > 10000:
-            self.sumo_step = 0
         print(f'episode:{self.episode_count}, \'done flag:\'{self.done}')
         self.episode_count += 1
 
-        # reset sumo after 7 days
-        current_time = traci.simulation.getTime()
-        if current_time > 86400 * 7:
-            self.init_sumo()
-            self.sumo_repeat += 1
-            self.sumo_step = 0
-            for _ in range(self.mdp_step*2):
-                traci.simulationStep()
-                self.sumo_step += 1
-                current_time = traci.simulation.getTime()
-                tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400*7, repair_flag=False) for tmp_lorry in self.lorry]
-                self.product.produce_load()
-                self.product.lorry_manage()
-
+        # init sumo
+        self.sumo_repeat += 1
+        self.init_sumo()
+            
         # lorry pool, only select normal lorry, i.e,. not 'broken'
         self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
     
@@ -115,9 +98,9 @@ class sumoEnv(MultiAgentEnv):
         # Read sensor reading, obs is a dictionary, key is the lorry id
         # observation = np.array([tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry])
         observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry_pool}
-
-        # for tmp_lorry in self.lorry:
-        #     self.done[tmp_lorry.id] = False
+        self.done['__all__'] = False
+        for tmp_lorry in self.lorry:
+            self.done[tmp_lorry.id] = False
         return observation
     
     def step(self, action_dict:dict):
@@ -138,10 +121,19 @@ class sumoEnv(MultiAgentEnv):
             tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400*7, repair_flag=False) for tmp_lorry in self.lorry]
             self.product.produce_load()
             self.product.lorry_manage()
+            # Terminate episode after all lorry are broken
+            for tmp_lorry in self.lorry:
+                if tmp_lorry.state == 'broken':
+                    self.done[tmp_lorry.id] = True
+                    self.done['__all__'] = all(self.done[tmp_idx]==True for tmp_idx in self.done if tmp_idx != '__all__')
+            if self.done['__all__']:
+                break
+        
+        lorry_dic = [tmp_idx for tmp_idx in self.done if self.done[tmp_idx] == False]
+        # Only those normal lorry can be selected
+        self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.id in lorry_dic and tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
 
-        self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
-
-        # Read sensor reading
+        # Read sensor reading. Only those normal lorries can be selected
         observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry_pool}
         # Get the reward, 1 hour
         reward = {}
@@ -150,6 +142,9 @@ class sumoEnv(MultiAgentEnv):
         tmp_cumulate = 0
         for tmp_lorry in self.lorry:
             reward[tmp_lorry.id] = current_trans[tmp_lorry.id] - last_trans[tmp_lorry.id]
+            # After lorry broken remove it from gym env
+            if tmp_lorry.id in lorry_dic:
+                reward[tmp_lorry.id] = 0
             tmp_reward += reward[tmp_lorry.id]
             tmp_cumulate += current_trans[tmp_lorry.id]
 
@@ -167,21 +162,9 @@ class sumoEnv(MultiAgentEnv):
             f_csv =writer(f)
             tmp_step = self.step_num
             f_csv.writerow([tmp_step, tmp_reward, tmp_cumulate])
-
-
-        # for tmp_lorry in self.lorry:
-        #     if tmp_lorry.episode_flag:
-        #         self.done[tmp_lorry.id] = True
-        #         tmp_lorry.episode_flag = False
-        #         print(self.done)
-        # self.done["__all__"] = True
-        # for tmp_lorry in self.lorry:
-        #     if tmp_lorry.episode_flag:
-        #         tmp_lorry.episode_flag = False
-        #         self.done["__all__"] = True
-        # One episode is 12 hours
-        if self.sumo_step >= 86400/2:
-            self.done["__all__"] = True
+        # Terminate the episode after 1 week
+        if current_time >= 86400*7:
+            self.done['__all__'] = True
         
         return observation, reward, self.done, {}
     

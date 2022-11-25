@@ -12,7 +12,7 @@ class Lorry(object):
     '''
     def __init__(self, lorry_id:str = 'lorry_0', capacity:float = 2.0, weight:float = 0.0,\
                  state:str = 'delivery', position:str = 'Factory0', destination:str = 'Factory0', product:str = 'A', eng=None, mdl:str=None,\
-                 path:str = 'result', time_broken:int = 86400, mdp_freq:float = 6*3600, env_step:int = 3600, broken_freq:float = 86400*10,\
+                 path:str = 'result', time_broken:int = 86400, mdp_freq:float = 6*3600, env_step:int = 3600, broken_freq:float = 86400*20,\
                  maintenance_freq:float = 4*3600, repair_freq:float = 86400*3) -> None:
         '''
         Parameters:
