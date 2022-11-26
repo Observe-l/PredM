@@ -116,7 +116,6 @@ class sumoEnv(MultiAgentEnv):
         last_trans = {tmp_lorry.id:tmp_lorry.total_product for tmp_lorry in self.lorry}
         for _ in range(self.mdp_step):
             traci.simulationStep()
-            self.sumo_step += 1
             current_time = traci.simulation.getTime()
             tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400*7, repair_flag=False) for tmp_lorry in self.lorry]
             self.product.produce_load()

@@ -28,7 +28,7 @@ if __name__ == '__main__':
         algo = ppo.PPO
         folder = "PPO"
 
-    stop = {'episodes_total':200000}
+    stop = {'episodes_total':100}
     rllib_config = {"env":sumoEnv,
                     "env_config":{"algo":folder},
                     "framework":"torch",
@@ -45,12 +45,15 @@ if __name__ == '__main__':
         algo,
         param_space=rllib_config,
         run_config=air.RunConfig(
+            # local_dir="/home/lwh/ray_results/DQN_2022-11-25_22-16-06",
+            name="DQN_restore",
             stop=stop,
             checkpoint_config=air.CheckpointConfig(
-                num_to_keep=5,
-                checkpoint_frequency=2
+                checkpoint_frequency=5,
+                checkpoint_at_end=True,
             ),
         )
     )
+    tunner.restore(path="/home/lwh/ray_results/DQN_2022-11-25_22-16-06")
     tunner.fit()
     ray.shutdown()
