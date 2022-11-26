@@ -1,4 +1,5 @@
 import ray
+import os
 from ray import tune, air
 from ray.tune.registry import register_env
 from ray.rllib.algorithms import dqn, ppo, sac
@@ -28,9 +29,9 @@ if __name__ == '__main__':
         algo = ppo.PPO
         folder = "PPO"
 
-    stop = {'episodes_total':100}
+    stop = {'episodes_total':500}
     rllib_config = {"env":sumoEnv,
-                    "env_config":{"algo":folder},
+                    "env_config":{"algo":folder,"num_workers":options.workers},
                     "framework":"torch",
                     "num_workers":options.workers,
                     "ignore_worker_failures":True,
@@ -41,19 +42,18 @@ if __name__ == '__main__':
                     }
     }
 
+    ray_dir = os.path.expanduser('~') + "/4days"
     tunner = tune.Tuner(
         algo,
         param_space=rllib_config,
         run_config=air.RunConfig(
-            # local_dir="/home/lwh/ray_results/DQN_2022-11-25_22-16-06",
-            name="DQN_restore",
+            local_dir=ray_dir,
             stop=stop,
             checkpoint_config=air.CheckpointConfig(
-                checkpoint_frequency=5,
+                checkpoint_frequency=10,
                 checkpoint_at_end=True,
             ),
         )
     )
-    tunner.restore(path="/home/lwh/ray_results/DQN_2022-11-25_22-16-06")
     tunner.fit()
     ray.shutdown()

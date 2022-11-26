@@ -19,6 +19,8 @@ class sumoEnv(MultiAgentEnv):
         # 12 lorries
         self.lorry_num = 12
         self.path = f'result/RL-' + env_config['algo'] + f'-worker{env_config.worker_index}'
+        # get cpu num
+        self.num_cpu = str(env_config['num_workers'])
         # Create folder
         Path(self.path).mkdir(parents=True, exist_ok=True)
         self.lorry_file = self.path + '/lorry_record.csv'
@@ -61,7 +63,8 @@ class sumoEnv(MultiAgentEnv):
             traci.close()
         except:
             pass
-        traci.start(["sumo", "-c", "map/3km_1week/osm.sumocfg","--threads","8"])
+        print(f"using {self.num_cpu} cpus")
+        traci.start(["sumo", "-c", "map/3km_1week/osm.sumocfg","--threads",self.num_cpu])
         # Create lorry
         self.lorry = [Lorry(lorry_id=f'lorry_{i}', path=self.path, capacity=0.5,
                     time_broken=int(3*86400), env_step=self.mdp_step) for i in range(self.lorry_num)]
@@ -162,7 +165,7 @@ class sumoEnv(MultiAgentEnv):
             tmp_step = self.step_num
             f_csv.writerow([tmp_step, tmp_reward, tmp_cumulate])
         # Terminate the episode after 1 week
-        if current_time >= 86400*7:
+        if current_time >= 86400*4:
             self.done['__all__'] = True
         
         return observation, reward, self.done, {}
