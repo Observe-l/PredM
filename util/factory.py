@@ -69,9 +69,9 @@ class Factory(object):
         # Check the state and position of the lorry
         # Check the storage
         if self.id in lorry.position and (lorry.state == 'waitting' or lorry.state == 'loading') and self.container.loc[product,'storage'] != 0:
-            #if lorry.state == 'waitting':
-                # #print when startting loading
-                #print(f'[loading] {lorry.id} start loading {product} at:{self.id}')
+            if lorry.state == 'waitting':
+                #print when startting loading
+                print(f'[loading] {lorry.id} start loading {product} at:{self.id}')
             # Maximum loading speed: 0.05 t/s
             load_weight = min(0.05, self.container.loc[product,'storage'])
             lorry_state, exceed_cargo =  lorry.load_cargo(weight=load_weight, product= product)
@@ -83,9 +83,9 @@ class Factory(object):
         Unload cargo to container
         '''
         if self.id in lorry.position and (lorry.state == 'pending for unloading' or lorry.state == 'unloading') and self.container.loc[lorry.product,'storage'] < self.container.loc[lorry.product,'capacity']:
-            #if lorry.state == 'pending for unloading':
-                # #print when startting unloading
-                #print(f'[unloading] {lorry.id} start unloading {lorry.product} at:{self.id}')
+            if lorry.state == 'pending for unloading':
+                #print when startting unloading
+                print(f'[unloading] {lorry.id} start unloading {lorry.product} at:{self.id}')
             # Maximum loading speed: 0.05 t/s
             unload_weight = min(0.05, self.container.loc[lorry.product,'capacity'] - self.container.loc[lorry.product,'storage'])
             lorry_state, exceed_cargo = lorry.unload_cargo(unload_weight)

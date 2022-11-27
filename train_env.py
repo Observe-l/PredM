@@ -25,7 +25,7 @@ class sumoEnv(MultiAgentEnv):
         Path(self.path).mkdir(parents=True, exist_ok=True)
         self.lorry_file = self.path + '/lorry_record.csv'
         self.result_file = self.path + '/result.csv'
-        self.reward_file = self.path + 'reward.csv'
+        self.reward_file = self.path + '/reward.csv'
         
         # There are 2 actions: repaired or not
         # self.action_space = spaces.Tuple([spaces.Discrete(2) for _ in range(self.lorry_num)])
@@ -146,9 +146,10 @@ class sumoEnv(MultiAgentEnv):
         tmp_reward = 0
         tmp_cumulate = 0
         for tmp_lorry in self.lorry:
-            reward[tmp_lorry.id] = current_trans[tmp_lorry.id] - last_trans[tmp_lorry.id]
-            # After lorry broken remove it from gym env
             if tmp_lorry.id in lorry_dic:
+                reward[tmp_lorry.id] = 10 * (current_trans[tmp_lorry.id] - last_trans[tmp_lorry.id])
+                # After lorry broken remove it from gym env
+            else:
                 reward[tmp_lorry.id] = 0
             tmp_reward += reward[tmp_lorry.id]
             tmp_cumulate += current_trans[tmp_lorry.id]
