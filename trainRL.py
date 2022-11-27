@@ -35,7 +35,6 @@ if __name__ == '__main__':
                     "env_config":{"algo":folder,"num_workers":options.workers},
                     "framework":"torch",
                     "num_workers":options.workers,
-                    "num_gpus":1,
                     "ignore_worker_failures":True,
                     "recreate_failed_workers":True,
                     "multiagent":{

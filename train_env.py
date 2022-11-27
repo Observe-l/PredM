@@ -104,9 +104,11 @@ class sumoEnv(MultiAgentEnv):
         self.done['__all__'] = False
         for tmp_lorry in self.lorry:
             self.done[tmp_lorry.id] = False
+            print(f'dong state is: {self.done}')
         return observation
     
     def step(self, action_dict:dict):
+        print(f'new step, action: {action_dict}')
         self.step_num += 1
         # lorry pool, only select normal lorry, i.e,. not 'broken'
         # action is a dictionary
@@ -119,7 +121,7 @@ class sumoEnv(MultiAgentEnv):
         for _ in range(self.mdp_step):
             traci.simulationStep()
             current_time = traci.simulation.getTime()
-            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400/1, repair_flag=False) for tmp_lorry in self.lorry]
+            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400/2, repair_flag=False) for tmp_lorry in self.lorry]
             self.product.produce_load()
             self.product.lorry_manage()
             # Terminate episode after all lorry are broken
@@ -127,6 +129,7 @@ class sumoEnv(MultiAgentEnv):
                 if tmp_lorry.state == 'broken':
                     self.done[tmp_lorry.id] = True
                     self.done['__all__'] = all(self.done[tmp_idx]==True for tmp_idx in self.done if tmp_idx != '__all__')
+                    print(f'dong state is: {self.done}')
             if self.done['__all__']:
                 break
         
