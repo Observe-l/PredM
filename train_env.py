@@ -31,7 +31,7 @@ class sumoEnv(MultiAgentEnv):
         # self.action_space = spaces.Tuple([spaces.Discrete(2) for _ in range(self.lorry_num)])
         self.action_space = spaces.Discrete(2)
         # mdp step, 1 min, unit is second
-        self.mdp_step = 600
+        self.mdp_step = 300
         # sumo step 86400*7
         # sumo repeating times
         self.sumo_repeat = 0
@@ -67,12 +67,12 @@ class sumoEnv(MultiAgentEnv):
         traci.start(["sumo", "-c", "map/3km_1week/osm.sumocfg","--threads",self.num_cpu])
         # Create lorry
         self.lorry = [Lorry(lorry_id=f'lorry_{i}', path=self.path, capacity=0.5,
-                    time_broken=int(3*86400), env_step=self.mdp_step) for i in range(self.lorry_num)]
+                    time_broken=int(3*86400), env_step=self.mdp_step, mdp_freq=0.6*3600, maintenance_freq=0.4*3600) for i in range(self.lorry_num)]
         # Create factory
-        self.factory = [Factory(factory_id='Factory0', produce_rate=[['P1',0.05,None,None]]),
-                Factory(factory_id='Factory1', produce_rate=[['P2',1,None,None],['P12',0.25,'P1,P2','1,1']]),
-                Factory(factory_id='Factory2', produce_rate=[['P3',0.5,None,None],['P23',0.25,'P2,P3','1,1'],['A',0.25,'P12,P3','1,1']]),
-                Factory(factory_id='Factory3', produce_rate=[['P4',0.5,None,None],['B',0.25,'P23,P4','1,1']])
+        self.factory = [Factory(factory_id='Factory0', produce_rate=[['P1',5,None,None]]),
+                Factory(factory_id='Factory1', produce_rate=[['P2',10,None,None],['P12',2.5,'P1,P2','1,1']]),
+                Factory(factory_id='Factory2', produce_rate=[['P3',5,None,None],['P23',2.5,'P2,P3','1,1'],['A',2.5,'P12,P3','1,1']]),
+                Factory(factory_id='Factory3', produce_rate=[['P4',5,None,None],['B',2.5,'P23,P4','1,1']])
                 ]
         # The lorry and factory mamanent
         self.product = product_management(self.factory, self.lorry)
@@ -80,7 +80,7 @@ class sumoEnv(MultiAgentEnv):
         for _ in range(self.mdp_step*2):
             traci.simulationStep()
             current_time = traci.simulation.getTime()
-            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400*7, repair_flag=False) for tmp_lorry in self.lorry]
+            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400/2, repair_flag=False) for tmp_lorry in self.lorry]
             self.product.produce_load()
             self.product.lorry_manage()
 
@@ -119,7 +119,7 @@ class sumoEnv(MultiAgentEnv):
         for _ in range(self.mdp_step):
             traci.simulationStep()
             current_time = traci.simulation.getTime()
-            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400*7, repair_flag=False) for tmp_lorry in self.lorry]
+            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400/1, repair_flag=False) for tmp_lorry in self.lorry]
             self.product.produce_load()
             self.product.lorry_manage()
             # Terminate episode after all lorry are broken
@@ -164,7 +164,7 @@ class sumoEnv(MultiAgentEnv):
             tmp_step = self.step_num
             f_csv.writerow([tmp_step, tmp_reward, tmp_cumulate])
         # Terminate the episode after 1 week
-        if current_time >= 86400*7:
+        if current_time >= 86400/2:
             self.done['__all__'] = True
         
         return observation, reward, self.done, {}

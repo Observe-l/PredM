@@ -9,7 +9,7 @@ class Factory(object):
     The class of factory
     '''
     def __init__(self, factory_id:str = 'Factory0', produce_rate:list = [['P1',0.0001,None,None]], 
-                 capacity:float=150.0, container:list = ['P1','P2','P3','P4','P12','P23','A','B']) -> None:
+                 capacity:float=800.0, container:list = ['P1','P2','P3','P4','P12','P23','A','B']) -> None:
         '''
         Parameters:
         factory_id: string

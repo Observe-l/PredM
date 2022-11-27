@@ -6,7 +6,8 @@ from ray.rllib.algorithms import dqn, ppo, sac
 
 import optparse
 
-from sumo_env import sumoEnv
+# from sumo_env import sumoEnv
+from train_env import sumoEnv
 
 def get_options():
     optParse = optparse.OptionParser()
@@ -54,7 +55,7 @@ if __name__ == '__main__':
             stop=stop,
             checkpoint_config=air.CheckpointConfig(
                 checkpoint_frequency=10,
-                num_to_keep=100,
+                num_to_keep=50,
                 checkpoint_at_end=True,
             ),
         )

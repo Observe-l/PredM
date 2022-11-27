@@ -74,6 +74,8 @@ class Lorry(object):
         # Transfer the state after time 'state_trans'
         self.state_trans = env_step
         self.step = 1
+        self.maintenance_step = 1
+        self.broken_step = 1
 
         # recover after time_broken
         self.time_broken = time_broken # 1 day
@@ -153,13 +155,15 @@ class Lorry(object):
             self.lorry_stop()
 
         # Lorry maintenance
-        if self.maintenance_flag and self.time_step%self.state_trans==1:
+        if self.maintenance_flag and self.maintenance_step%self.state_trans==1:
+            self.maintenance_step += 1
             self.maintenance()
         # Repair the engine
         if repair_flag:
             self.repair()
 
-        if self.state == 'broken' and self.time_step % self.state_trans == 1:
+        if self.state == 'broken' and self.broken_step % self.state_trans == 1:
+            self.broken_step += 1
             self.broken_repair()
         # mannually repair the engine
         elif self.state == 'repair':
@@ -170,7 +174,7 @@ class Lorry(object):
                 self.step += 1
                 # In sumo the lorry resume from stop
                 traci.vehicle.resume(vehID=self.id)
-                print(f'[recover] {self.id}')
+                print(f'[recover] {self.id}, mdp state: {self.mk_state}')
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after repaired'])
@@ -331,7 +335,7 @@ class Lorry(object):
                     traci.vehicle.resume(vehID=self.id)
                 except:
                     pass
-            print(f'[recover] {self.id}')
+            print(f'[recover] {self.id}, mdp state: {self.mk_state}')
             with open(self.path,'a') as f:
                 f_csv = writer(f)
                 f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after broken'])
@@ -373,7 +377,7 @@ class Lorry(object):
                     except:
                         pass
                 self.maintenance_flag = False
-                print(f'[recover] {self.id}')
+                print(f'[recover] {self.id}, mdp state: {self.mk_state}')
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after maintenance'])
