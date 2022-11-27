@@ -86,7 +86,7 @@ class sumoEnv(MultiAgentEnv):
 
     def reset(self):
         # Reset episode
-        print(f'episode:{self.episode_count}, \'done flag:\'{self.done}')
+        print(f'episode:{self.episode_count}')
         self.episode_count += 1
 
         # init sumo
@@ -112,7 +112,9 @@ class sumoEnv(MultiAgentEnv):
         # action is a dictionary
         for tmp_key in action_dict.keys():
             if action_dict[tmp_key] == 1:
-                self.lorry[int(tmp_key[-1])].maintenance_flag = True
+                for i in range(len(self.lorry)):
+                    if self.lorry[i].id == tmp_key:
+                        self.lorry[i].maintenance_flag = True
 
         # get reward before step
         last_trans = {tmp_lorry.id:tmp_lorry.total_product for tmp_lorry in self.lorry}
