@@ -263,7 +263,7 @@ class Lorry(object):
         traci.vehicle.setParkingAreaStop(vehID=self.id, stopID=self.destination)
         #print(f'[move] {self.id} move from {self.position} to {self.destination}')
 
-    def load_cargo(self, weight:float, product:str) -> tuple[str, float]:
+    def load_cargo(self, weight:float, product:str):
         '''
         Load cargo to the lorry. Cannot exceed the maximum capacity. The unit should be 'kg'.
         After the lorry is full, the state will change to pending, and the color change to Red
@@ -286,7 +286,7 @@ class Lorry(object):
             self.total_product += self.weight
             return ('full', self.weight + weight - self.capacity)
     
-    def unload_cargo(self, weight:float) -> tuple[str, float]:
+    def unload_cargo(self, weight:float):
         '''
         Unload cargo. If lorry is empty, health become waitting.
         '''

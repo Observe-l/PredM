@@ -10,7 +10,7 @@ class product_management(object):
     There are 2 final products: A(P123) and B(P234)
     '''
     
-    def __init__(self, factory:list[Factory], lorry:list[Lorry]) -> None:
+    def __init__(self, factory:list, lorry:list) -> None:
         '''
         Input the list of factories and the lorries
         Producding order:

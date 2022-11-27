@@ -34,6 +34,7 @@ if __name__ == '__main__':
                     "env_config":{"algo":folder,"num_workers":options.workers},
                     "framework":"torch",
                     "num_workers":options.workers,
+                    "num_gpus":1,
                     "ignore_worker_failures":True,
                     "recreate_failed_workers":True,
                     "multiagent":{
@@ -42,7 +43,9 @@ if __name__ == '__main__':
                     }
     }
 
-    ray_dir = os.path.expanduser('~') + "/4days"
+    # ray_dir = os.path.expanduser('~') + "/4days"
+
+    ray_dir = "/hpctmp/ecelwh/sumo_env"
     tunner = tune.Tuner(
         algo,
         param_space=rllib_config,
@@ -51,6 +54,7 @@ if __name__ == '__main__':
             stop=stop,
             checkpoint_config=air.CheckpointConfig(
                 checkpoint_frequency=10,
+                num_to_keep=100,
                 checkpoint_at_end=True,
             ),
         )
