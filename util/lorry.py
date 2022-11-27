@@ -74,8 +74,8 @@ class Lorry(object):
         # Transfer the state after time 'state_trans'
         self.state_trans = env_step
         self.step = 1
-        self.maintenance_step = 1
-        self.broken_step = 1
+        self.maintenance_step = 0
+        self.broken_step = 0
 
         # recover after time_broken
         self.time_broken = time_broken # 1 day
@@ -155,16 +155,21 @@ class Lorry(object):
             self.lorry_stop()
 
         # Lorry maintenance
-        if self.maintenance_flag and self.maintenance_step%self.state_trans==1:
-            self.maintenance_step += 1
+        if self.maintenance_flag:
             self.maintenance()
+        elif self.state == 'maintenance':
+            self.maintenance_step += 1
+            if self.maintenance_step%self.state_trans==1:
+                self.maintenance()
+        
         # Repair the engine
         if repair_flag:
             self.repair()
 
-        if self.state == 'broken' and self.broken_step % self.state_trans == 1:
+        if self.state == 'broken':
             self.broken_step += 1
-            self.broken_repair()
+            if self.broken_step % self.state_trans == 1:
+                self.broken_repair()
         # mannually repair the engine
         elif self.state == 'repair':
             self.step_repair +=1
@@ -173,7 +178,8 @@ class Lorry(object):
                 self.mk_state = 0
                 self.step += 1
                 # In sumo the lorry resume from stop
-                traci.vehicle.resume(vehID=self.id)
+                # traci.vehicle.resume(vehID=self.id)
+                self.lorry_resume()
                 print(f'[recover] {self.id}, mdp state: {self.mk_state}')
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
@@ -187,11 +193,11 @@ class Lorry(object):
         elif parking_state.arrival < 0:
             self.state = 'delivery'
             if len(tmp_pk)>1:
-                try:
-                    # print(f'{self.id}, {tmp_pk}')
-                    traci.vehicle.resume(vehID=self.id)
-                except:
-                    pass
+                self.lorry_resume()
+                # try:
+                #     traci.vehicle.resume(vehID=self.id)
+                # except:
+                #     pass
             self.step += 1
         elif self.weight == self.capacity and self.position == self.destination:
             self.state = 'pending for unloading'
@@ -252,6 +258,14 @@ class Lorry(object):
                         self.recover_state = 'waitting'
                     else:
                         self.recover_state = 'pending for unloading'
+    
+    def lorry_resume(self):
+        tmp_pk = traci.vehicle.getStops(vehID=self.id)
+        if len(tmp_pk) > 0:
+            latest_pk = tmp_pk[0]
+            if latest_pk.arrival > 0:
+                traci.vehicle.resume(vehID=self.id)
+
 
     def delivery(self, destination:str) -> None:
         '''
@@ -331,11 +345,13 @@ class Lorry(object):
             self.step += 1
             # In sumo the lorry resume from stop
             if self.state == 'delivery':
-                try:
-                    traci.vehicle.resume(vehID=self.id)
-                except:
-                    pass
+                self.lorry_resume()
+                # try:
+                #     traci.vehicle.resume(vehID=self.id)
+                # except:
+                #     pass
             print(f'[recover] {self.id}, mdp state: {self.mk_state}')
+            self.broken_step = 0
             with open(self.path,'a') as f:
                 f_csv = writer(f)
                 f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after broken'])
@@ -346,6 +362,7 @@ class Lorry(object):
             pass
         
     def maintenance(self):
+        self.maintenance_flag = False
         lm = random.uniform(0,1)
         if self.mk_state < 4:
             self.recover_state = self.state
@@ -356,7 +373,7 @@ class Lorry(object):
                 self.mk_state = 5
                 print(f'[Broken] {self.id}')
                 self.state = 'broken'
-                self.maintenance_flag = False
+                # self.maintenance_flag = False
                 return 'broken'
             else:
                 self.mk_state += 6
@@ -372,12 +389,14 @@ class Lorry(object):
                 self.state = self.recover_state
                 # In sumo the lorry resume from stop
                 if self.state == 'delivery':
-                    try:
-                        traci.vehicle.resume(vehID=self.id)
-                    except:
-                        pass
-                self.maintenance_flag = False
+                    self.lorry_resume()
+                    # try:
+                    #     traci.vehicle.resume(vehID=self.id)
+                    # except:
+                    #     pass
+                # self.maintenance_flag = False
                 print(f'[recover] {self.id}, mdp state: {self.mk_state}')
+                self.maintenance_step = 0
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after maintenance'])

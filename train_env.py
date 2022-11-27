@@ -104,17 +104,22 @@ class sumoEnv(MultiAgentEnv):
         self.done['__all__'] = False
         for tmp_lorry in self.lorry:
             self.done[tmp_lorry.id] = False
-            print(f'dong state is: {self.done}')
+        print(f'dong state is: {self.done}')
         return observation
     
     def step(self, action_dict:dict):
         print(f'new step, action: {action_dict}')
+
         self.step_num += 1
         # lorry pool, only select normal lorry, i.e,. not 'broken'
         # action is a dictionary
         for tmp_key in action_dict.keys():
             if action_dict[tmp_key] == 1:
-                self.lorry[int(tmp_key[-1])].maintenance_flag = True
+                for tmp_lorry in self.lorry:
+                    if tmp_lorry.id == tmp_key:
+                        tmp_lorry.maintenance_flag == True
+                        break
+
 
         # get reward before step
         last_trans = {tmp_lorry.id:tmp_lorry.total_product for tmp_lorry in self.lorry}
@@ -129,16 +134,18 @@ class sumoEnv(MultiAgentEnv):
                 if tmp_lorry.state == 'broken':
                     self.done[tmp_lorry.id] = True
                     self.done['__all__'] = all(self.done[tmp_idx]==True for tmp_idx in self.done if tmp_idx != '__all__')
-                    print(f'dong state is: {self.done}')
+                    # print(f'dong state is: {self.done}')
             if self.done['__all__']:
                 break
         
         lorry_dic = [tmp_idx for tmp_idx in self.done if self.done[tmp_idx] == False]
+        print(f'alive lorry: {lorry_dic}')
         # Only those normal lorry can be selected
         self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.id in lorry_dic and tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
         
         # Read sensor reading. Only those normal lorries can be selected
         observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry_pool}
+        print(f'observation keys: {observation.keys()}')
         # Get the reward, 1 hour
         reward = {}
         current_trans = {tmp_lorry.id:tmp_lorry.total_product for tmp_lorry in self.lorry}
