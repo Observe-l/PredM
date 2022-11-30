@@ -53,11 +53,12 @@ if __name__ == '__main__':
             local_dir=ray_dir,
             stop=stop,
             checkpoint_config=air.CheckpointConfig(
-                checkpoint_frequency=10,
-                num_to_keep=50,
+                checkpoint_frequency=1,
+                num_to_keep=100,
                 checkpoint_at_end=True,
+                checkpoint_score_attribute='reward',
             ),
         )
     )
-    tunner.fit()
+    result = tunner.fit()
     ray.shutdown()

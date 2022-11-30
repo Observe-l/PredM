@@ -18,20 +18,20 @@ class sumoEnv(MultiAgentEnv):
     def __init__(self, env_config:EnvContext):
         # 12 lorries
         self.lorry_num = 12
-        self.path = f'result/RL-' + env_config['algo'] + f'-worker{env_config.worker_index}'
+        self.path = f'result/RL-' + env_config['algo']
         # get cpu num
-        self.num_cpu = str(env_config['num_workers'])
+        self.num_cpu = "8"
         # Create folder
         Path(self.path).mkdir(parents=True, exist_ok=True)
         self.lorry_file = self.path + '/lorry_record.csv'
         self.result_file = self.path + '/result.csv'
-        self.reward_file = self.path + 'reward.csv'
+        self.reward_file = self.path + '/reward.csv'
         
         # There are 2 actions: repaired or not
         # self.action_space = spaces.Tuple([spaces.Discrete(2) for _ in range(self.lorry_num)])
         self.action_space = spaces.Discrete(2)
         # mdp step, 1 min, unit is second
-        self.mdp_step = 600
+        self.mdp_step = 300
         # sumo step 86400*7
         # sumo repeating times
         self.sumo_repeat = 0
@@ -69,10 +69,10 @@ class sumoEnv(MultiAgentEnv):
         self.lorry = [Lorry(lorry_id=f'lorry_{i}', path=self.path, capacity=0.5,
                     time_broken=int(3*86400), env_step=self.mdp_step) for i in range(self.lorry_num)]
         # Create factory
-        self.factory = [Factory(factory_id='Factory0', produce_rate=[['P1',0.05,None,None]]),
-                Factory(factory_id='Factory1', produce_rate=[['P2',1,None,None],['P12',0.25,'P1,P2','1,1']]),
-                Factory(factory_id='Factory2', produce_rate=[['P3',0.5,None,None],['P23',0.25,'P2,P3','1,1'],['A',0.25,'P12,P3','1,1']]),
-                Factory(factory_id='Factory3', produce_rate=[['P4',0.5,None,None],['B',0.25,'P23,P4','1,1']])
+        self.factory = [Factory(factory_id='Factory0', produce_rate=[['P1',5,None,None]]),
+                Factory(factory_id='Factory1', produce_rate=[['P2',10,None,None],['P12',2.5,'P1,P2','1,1']]),
+                Factory(factory_id='Factory2', produce_rate=[['P3',5,None,None],['P23',2.5,'P2,P3','1,1'],['A',2.5,'P12,P3','1,1']]),
+                Factory(factory_id='Factory3', produce_rate=[['P4',5,None,None],['B',2.5,'P23,P4','1,1']])
                 ]
         # The lorry and factory mamanent
         self.product = product_management(self.factory, self.lorry)
@@ -124,17 +124,9 @@ class sumoEnv(MultiAgentEnv):
             tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400*7, repair_flag=False) for tmp_lorry in self.lorry]
             self.product.produce_load()
             self.product.lorry_manage()
-            # Terminate episode after all lorry are broken
-            for tmp_lorry in self.lorry:
-                if tmp_lorry.state == 'broken':
-                    self.done[tmp_lorry.id] = True
-                    self.done['__all__'] = all(self.done[tmp_idx]==True for tmp_idx in self.done if tmp_idx != '__all__')
-            if self.done['__all__']:
-                break
-        
-        lorry_dic = [tmp_idx for tmp_idx in self.done if self.done[tmp_idx] == False]
-        # Only those normal lorry can be selected
-        self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.id in lorry_dic and tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
+
+
+        self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
         
         # Read sensor reading. Only those normal lorries can be selected
         observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry_pool}
@@ -145,9 +137,6 @@ class sumoEnv(MultiAgentEnv):
         tmp_cumulate = 0
         for tmp_lorry in self.lorry:
             reward[tmp_lorry.id] = current_trans[tmp_lorry.id] - last_trans[tmp_lorry.id]
-            # After lorry broken remove it from gym env
-            if tmp_lorry.id in lorry_dic:
-                reward[tmp_lorry.id] = 0
             tmp_reward += reward[tmp_lorry.id]
             tmp_cumulate += current_trans[tmp_lorry.id]
 

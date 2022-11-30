@@ -126,17 +126,9 @@ class sumoEnv(MultiAgentEnv):
             tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400/2, repair_flag=False) for tmp_lorry in self.lorry]
             self.product.produce_load()
             self.product.lorry_manage()
-            # Terminate episode after all lorry are broken
-            for tmp_lorry in self.lorry:
-                if tmp_lorry.state == 'broken':
-                    self.done[tmp_lorry.id] = True
-                    self.done['__all__'] = all(self.done[tmp_idx]==True for tmp_idx in self.done if tmp_idx != '__all__')
-            if self.done['__all__']:
-                break
         
-        lorry_dic = [tmp_idx for tmp_idx in self.done if self.done[tmp_idx] == False]
         # Only those normal lorry can be selected
-        self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.id in lorry_dic and tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
+        self.lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
         
         # Read sensor reading. Only those normal lorries can be selected
         observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry_pool}
@@ -146,11 +138,7 @@ class sumoEnv(MultiAgentEnv):
         tmp_reward = 0
         tmp_cumulate = 0
         for tmp_lorry in self.lorry:
-            if tmp_lorry.id in lorry_dic:
-                reward[tmp_lorry.id] = 10 * (current_trans[tmp_lorry.id] - last_trans[tmp_lorry.id])
-                # After lorry broken remove it from gym env
-            else:
-                reward[tmp_lorry.id] = 0
+            reward[tmp_lorry.id] = 10 * (current_trans[tmp_lorry.id] - last_trans[tmp_lorry.id])
             tmp_reward += reward[tmp_lorry.id]
             tmp_cumulate += current_trans[tmp_lorry.id]
 
