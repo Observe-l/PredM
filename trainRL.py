@@ -6,8 +6,9 @@ from ray.rllib.algorithms import dqn, ppo, sac
 
 import optparse
 
-from sumo_env import sumoEnv
+# from sumo_env import sumoEnv
 # from train_env import sumoEnv
+from single_lorry import sumoEnv
 
 def get_options():
     optParse = optparse.OptionParser()
@@ -39,7 +40,8 @@ if __name__ == '__main__':
                     "recreate_failed_workers":True,
     }
 
-    ray_dir = os.path.expanduser('~') + "/7days"
+    # ray_dir = os.path.expanduser('~') + "/7days"
+    ray_dir = "/hpctmp/e0724734/single_agent"
 
     # ray_dir = "/hpctmp/ecelwh/single_agent"
     tunner = tune.Tuner(
@@ -52,7 +54,7 @@ if __name__ == '__main__':
                 checkpoint_frequency=1,
                 num_to_keep=100,
                 checkpoint_at_end=True,
-                checkpoint_score_attribute='reward',
+                checkpoint_score_attribute='episode_reward_mean',
             ),
         )
     )
