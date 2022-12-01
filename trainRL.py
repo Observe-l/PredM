@@ -6,8 +6,8 @@ from ray.rllib.algorithms import dqn, ppo, sac
 
 import optparse
 
-# from sumo_env import sumoEnv
-from train_env import sumoEnv
+from sumo_env import sumoEnv
+# from train_env import sumoEnv
 
 def get_options():
     optParse = optparse.OptionParser()
@@ -30,22 +30,18 @@ if __name__ == '__main__':
         algo = ppo.PPO
         folder = "PPO"
 
-    stop = {'episodes_total':500}
+    stop = {'episodes_total':200}
     rllib_config = {"env":sumoEnv,
-                    "env_config":{"algo":folder,"num_workers":options.workers},
-                    "framework":"torch",
+                    "env_config":{"algo":folder},
+                    "framework":"tf2",
                     "num_workers":options.workers,
                     "ignore_worker_failures":True,
                     "recreate_failed_workers":True,
-                    "multiagent":{
-                        "policies":{"shared_policy"},
-                        "policy_mapping_fn": (lambda agent_id, episode, **kwargs: "shared_policy"),
-                    }
     }
 
-    # ray_dir = os.path.expanduser('~') + "/4days"
+    ray_dir = os.path.expanduser('~') + "/7days"
 
-    ray_dir = "/hpctmp/ecelwh/sumo_env"
+    # ray_dir = "/hpctmp/ecelwh/single_agent"
     tunner = tune.Tuner(
         algo,
         param_space=rllib_config,

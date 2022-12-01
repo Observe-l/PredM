@@ -97,18 +97,20 @@ class Lorry(object):
         self.episode_flag = False
 
         # sensor reading
-        self.sensor = pd.DataFrame({'s1':[],
-                                    's2':[],
-                                    's3':[],
-                                    's4':[],
-                                    's5':[],
-                                    's6':[],
-                                    's7':[],
-                                    's8':[],
-                                    's9':[],
-                                    'MDPstate':[]
-        })
-        self.sensor_store = pd.read_csv('sensor.csv',index_col=0)
+        # self.sensor_store = pd.read_csv('sensor.csv',index_col=0)
+        self.sensor_store = pd.DataFrame(
+                             {'s1':[-0.261865793780688, -0.261865793780687, 0.854862119013063,  0,                  0.1, 0.3, 0.5, 0.7, 0,                  0],
+                              's2':[0,                  -0.261865793780687, 0.854862119013063,  0,                  0.1, 0.3, 0.5, 0.7, 0,                  0],
+                              's3':[0.232220609580154,  0.510258310975582,  0.854862119013064,  0,                  0.1, 0.3, 0.5, 0.7, 0,                  0],
+                              's4':[0.41230769230978,   0.412307692307698,  0.854862119013063,  0,                  0.1, 0.3, 0.5, 0.7, 0,                  0],
+                              's5':[0.615384615388344,  0.615384615385666,  0.854862119013063,  0,                  0.1, 0.3, 0.5, 0.7, 0,                  0],
+                              's6':[0.854862119017747,  0.854862119015461,  0.854862119013063,  1.4255319149081,    0.1, 0.3, 0.5, 0.7, 1.4255319149081,    0],
+                              's7':[1.0000000000064,    1.00000000000655,   1.00000000000091,   1.0000000000086,    0.1, 0.3, 0.5, 0.7, 0.412307692308142,  0],
+                              's8':[1.16366612112214,   1.16366612112405,   0.854862119012898,  1.42553191490811,   0.1, 0.3, 0.5, 0.7, 0,                  0],
+                              's9':[1.42553191490218,   1.16366612112405,   0.854862119012898,  1.42553191490811,   0.1, 0.3, 0.5, 0.7, 0,                  0],
+                              'MDPstate':[0,            1,                  2,                  3,                  4,   5,   6,   7,   8,                  9]}
+                              )
+        self.sensor = self.sensor_store.loc[self.sensor_store['MDPstate']==self.mk_state]
 
     
     def update_lorry(self, capacity:float = 10000.0, weight:float = 0.0,\
@@ -151,7 +153,7 @@ class Lorry(object):
         self.position = parking_state.stoppingPlaceID
 
         # fix some bug, ensure lorry stop when maintenance
-        if self.mk_state > 5 and self.recover_state=='delivery' and len(tmp_pk)==1:
+        if self.mk_state > 3 and self.recover_state=='delivery' and len(tmp_pk)==1:
             self.lorry_stop()
 
         # Lorry maintenance
@@ -194,10 +196,6 @@ class Lorry(object):
             self.state = 'delivery'
             if len(tmp_pk)>1:
                 self.lorry_resume()
-                # try:
-                #     traci.vehicle.resume(vehID=self.id)
-                # except:
-                #     pass
             self.step += 1
         elif self.weight == self.capacity and self.position == self.destination:
             self.state = 'pending for unloading'
@@ -206,13 +204,15 @@ class Lorry(object):
         # Update the engine state and get sensor reading from Simulink
         if self.state == 'delivery' and self.step % self.state_trans ==0:
             self.MDP_model()
-            if self.mk_state == 4 or self.mk_state == 5:
+            if self.mk_state == 8 or self.mk_state == 9:
                 print(f'[Broken] {self.id}')
                 self.state = 'broken'
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([self.time_step,self.id,self.mk_state,'broken'])
                 self.lorry_stop()
+                
+        self.sensor = self.sensor_store.loc[self.sensor_store['MDPstate']==self.mk_state]
         return {'state':self.state, 'postion':self.position}
 
 
@@ -370,22 +370,22 @@ class Lorry(object):
             if self.state == 'delivery':
                 self.lorry_stop()
             if lm < self.threshold1:
-                self.mk_state = 5
+                self.mk_state = 9
                 print(f'[Broken] {self.id}')
                 self.state = 'broken'
                 # self.maintenance_flag = False
                 return 'broken'
             else:
-                self.mk_state += 6
+                self.mk_state += 4
                 self.state = 'maintenance'
                 print(f'[maintenance] {self.id} go to state {self.mk_state}')
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([self.time_step,self.id,self.mk_state,'maintenance'])
                 return 'maintenance'
-        elif self.mk_state > 5:
+        elif self.mk_state >= 4 and self.mk_state < 8:
             if lm < self.mu0:
-                self.mk_state = max(0, self.mk_state-7)
+                self.mk_state = max(0, self.mk_state-5)
                 self.state = self.recover_state
                 # In sumo the lorry resume from stop
                 if self.state == 'delivery':
@@ -427,15 +427,15 @@ class Lorry(object):
         '''
         # self.sensor.drop(self.sensor.index, inplace=True)
         lm = random.uniform(0,1)
-        if self.mk_state < 4:
-            if lm < self.threshold1:
-                self.mk_state = 5
-            elif lm > self.threshold2:
+        if lm < self.threshold1:
+            self.mk_state = 9
+        elif lm > self.threshold2:
+            if self.mk_state < 3:
                 self.mk_state += 1
-            else:
-                self.mk_state = self.mk_state
+            elif self.mk_state == 3:
+                self.mk_state = 8
         else:
             self.mk_state = self.mk_state
         print(f'[MDP state] {self.id} state: {self.mk_state}, time:{self.time_step}')
-        self.sensor = self.sensor_store.loc[self.sensor_store['MDPstate']==self.mk_state]
+        
         
