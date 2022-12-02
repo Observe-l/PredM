@@ -6,7 +6,7 @@ import optparse
 
 # from sumo_env import sumoEnv
 # from train_env import sumoEnv
-from multiple_lorry import sumoEnv
+from single_lorry_eva import sumoEnv
 
 def get_options():
     optParse = optparse.OptionParser()
@@ -23,18 +23,19 @@ if __name__ == '__main__':
                 "num_workers":1,
                 "ignore_worker_failures":True,
                 "recreate_failed_workers":True,
+                "disable_env_checking": True,
     }
     if options.algorithm == "DQN":
         agent=dqn.DQN(config=rllib_config)
-        agent.restore('/home/lwh/ray_results/single_agent/DQN_2022-12-01_11-09-06/DQN_sumoEnv_83f85_00000_0_2022-12-01_11-09-06/checkpoint_000081')
+        agent.restore('/hpctmp/e0724734/single_agent/DQN_2022-12-01_15-27-38/DQN_sumoEnv_a24ff_00000_0_2022-12-01_15-27-39/checkpoint_000220')
         folder = "DQN_single"
     elif options.algorithm == "SAC":
         agent=sac.SAC(config=rllib_config)
-        agent.restore('/home/lwh/ray_results/sumo_env/SAC_2022-11-28_00-04-22/SAC_sumoEnv_2838a_00000_0_2022-11-28_00-04-22/checkpoint_000639')
+        agent.restore('/hpctmp/e0724734/single_agent/SAC_2022-12-01_17-36-10/SAC_sumoEnv_96ff5_00000_0_2022-12-01_17-36-11/checkpoint_000342')
         folder = "SAC_single"
     else:
         agent=ppo.PPO(config=rllib_config)
-        agent.restore('/home/lwh/ray_results/sumo_env/PPO_2022-11-27_23-30-57/PPO_sumoEnv_7d335_00000_0_2022-11-27_23-30-58/checkpoint_000019')
+        agent.restore('/hpctmp/e0724734/single_agent/PPO_2022-12-01_21-30-18/PPO_sumoEnv_4bf78_00000_0_2022-12-01_21-30-18/checkpoint_000013')
         folder = "PPO_single"
 
 
@@ -46,6 +47,9 @@ if __name__ == '__main__':
     done_state = False
 
     while done_state == False:
-        action = agent.compute_single_action(observation=obs)
+        action = {}
+        for tmp_key in obs:
+            action[tmp_key] = agent.compute_single_action(observation=obs[tmp_key])
+        # action = agent.compute_single_action(observation=obs)
         obs, reward, done_state, _ = env.step(action)
     ray.shutdown()

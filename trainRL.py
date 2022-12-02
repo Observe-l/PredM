@@ -41,9 +41,9 @@ if __name__ == '__main__':
     }
 
     # ray_dir = os.path.expanduser('~') + "/7days"
-    ray_dir = "/hpctmp/e0724734/single_agent"
+    # ray_dir = "/hpctmp/e0724734/single_agent_single_truck"
 
-    # ray_dir = "/hpctmp/ecelwh/single_agent"
+    ray_dir = "/hpctmp/ecelwh/single_agent_single_truck"
     tunner = tune.Tuner(
         algo,
         param_space=rllib_config,

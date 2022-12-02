@@ -102,22 +102,26 @@ class sumoEnv(gym.Env):
         # Read sensor reading, obs is a dictionary, key is the lorry id
         # observation = np.array([tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry])
         # observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry_pool}
-        observation = self.lorry[0].sensor[self.tmp_col].values.flatten()
+        # observation = self.lorry[0].sensor[self.tmp_col].values.flatten()
+        observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values.flatten() for tmp_lorry in lorry_pool}
 
         self.done = False
         return observation
     
-    def step(self, action):
+    def step(self, action_dict:dict):
         self.step_num += 1
         # lorry pool, only select normal lorry, i.e,. not 'broken'
         # action is a dictionary
-        lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
+        # lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
 
-        if action == 1 and self.lorry[0] in lorry_pool:
-            self.lorry[0].maintenance_flag = True
+        for tmp_key in action_dict.keys():
+            if action_dict[tmp_key] == 1:
+                for i in range(len(self.lorry)):
+                    if self.lorry[i].id == tmp_key:
+                        self.lorry[i].maintenance_flag = True
 
         # get reward before step
-        last_trans = np.array(self.lorry[0].total_product)
+        last_trans = {tmp_lorry.id:tmp_lorry.total_product for tmp_lorry in self.lorry}
         for _ in range(self.mdp_step):
             traci.simulationStep()
             current_time = traci.simulation.getTime()
@@ -128,11 +132,16 @@ class sumoEnv(gym.Env):
         lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
         
         # Read sensor reading. Only those normal lorries can be selected
-        observation = self.lorry[0].sensor[self.tmp_col].values.flatten()
+        observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in lorry_pool}
         # Get the reward
-        current_trans = np.array(self.lorry[0].total_product)
-        reward = current_trans - last_trans
-        self.cumulate_reward += reward
+        reward = {}
+        current_trans = {tmp_lorry.id:tmp_lorry.total_product for tmp_lorry in self.lorry}
+        tmp_reward = 0
+        tmp_cumulate = 0
+        for tmp_lorry in self.lorry:
+            reward[tmp_lorry.id] = current_trans[tmp_lorry.id] - last_trans[tmp_lorry.id]
+            tmp_reward += reward[tmp_lorry.id]
+            self.cumulate_reward += current_trans[tmp_lorry.id]
 
         # Record the result
         with open(self.result_file,'a') as f:
@@ -148,7 +157,7 @@ class sumoEnv(gym.Env):
         with open(self.reward_file,'a') as f:
             f_csv =writer(f)
             tmp_time = round(current_time / 3600 + (self.sumo_repeat-1)*7*24,3)
-            f_csv.writerow([tmp_time, reward, self.cumulate_reward])
+            f_csv.writerow([tmp_time, tmp_reward, self.cumulate_reward])
         # Terminate the episode after 1 week
         if current_time >= 86400*7:
             self.done = True
