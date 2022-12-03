@@ -138,6 +138,7 @@ class sumoEnv(gym.Env):
         current_trans = {tmp_lorry.id:tmp_lorry.total_product for tmp_lorry in self.lorry}
         tmp_reward = 0
         tmp_cumulate = 0
+        self.cumulate_reward = 0
         for tmp_lorry in self.lorry:
             reward[tmp_lorry.id] = current_trans[tmp_lorry.id] - last_trans[tmp_lorry.id]
             tmp_reward += reward[tmp_lorry.id]
