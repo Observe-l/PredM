@@ -16,8 +16,8 @@ class product_management(object):
         Producding order:
         Factory0: produce P1
         Facotry1: produce P2, P12
-        Factory3: produce P3, P23, A(P123)
-        Factory4: produce P4, B(P234)
+        Factory2: produce P3, P23, A(P123)
+        Factory3: produce P4, B(P234)
         '''
         self.factory = factory
         self.lorry = lorry

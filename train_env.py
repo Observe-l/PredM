@@ -156,7 +156,7 @@ class sumoEnv(gym.Env):
             f_csv.writerow([tmp_step, tmp_reward, tmp_cumulate])
         # Terminate the episode after 1 week
         if current_time >= 86400*6:
-            self.done = True
+            self.done['__all__'] = True
         
         return observation, reward, self.done, {}
     
