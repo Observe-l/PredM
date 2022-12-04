@@ -1,149 +1,31 @@
-import sys
-import optparse
-from csv import writer
-from pathlib import Path
-
-import matlab.engine as engine
-
+import ray
 import os
-import numpy as np
-import pandas as pd
+from ray import tune, air
+from ray.rllib.algorithms import dqn, ppo, sac
+import optparse
 
-from util.lorry import Lorry
-from util.factory import Factory
-from util.product import product_management
-
-
-# we need to import python modules from the $SUMO_HOME/tools directory
-if 'SUMO_HOME' in os.environ:
-    tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
-    sys.path.append(tools)
-else:
-    sys.exit("please declare environment variable 'SUMO_HOME'")
-
-from sumolib import checkBinary
-import traci
-
-def run(eng,mdl:str,repair_flag:bool,path:str, options):
-    # Generate lorries
-    lorry_num = options.lorry_num
-    lorry = [Lorry(lorry_id=f'lorry_{i}', eng=eng, mdl=mdl, path=path, capacity=options.lorry_capacity,
-                   time_broken=int(options.broken_time*86400), labmda1=1/(6*options.mdp_broken)) for i in range(lorry_num)]
-    # Gendrate 4 Factories
-    factory = [Factory(factory_id='Factory0', produce_rate=[['P1',0.05,None,None]]),
-               Factory(factory_id='Factory1', produce_rate=[['P2',0.1,None,None],['P12',0.025,'P1,P2','1,1']]),
-               Factory(factory_id='Factory2', produce_rate=[['P3',0.05,None,None],['P23',0.025,'P2,P3','1,1'],['A',0.025,'P12,P3','1,1']]),
-               Factory(factory_id='Factory3', produce_rate=[['P4',0.05,None,None],['B',0.025,'P23,P4','1,1']])
-              ]
-    product = product_management(factory,lorry)
-
-    result_file = path + '/result.csv'
-    lorry_file = path + '/lorry_record.csv'
-    with open(result_file,'w') as f:
-        f_csv = writer(f)
-        f_csv.writerow(['time','A','B','P12','P23','current_lorry'])
-    with open(lorry_file,'w') as f:
-        f_csv = writer(f)
-        f_csv.writerow(['time','lorry id','MDP','state'])
-
-    '''
-    execute the TraCI control loop
-    run 86400*7 seconds (1 week)
-    '''
-    for time_step in range(86400*7):
-        traci.simulationStep()
-
-        tmp_state = [lorry[i].refresh_state(time_step,repair_flag) for i in range(lorry_num)]
-
-        # Produce product and develievery
-        product.produce_load()
-        product.lorry_manage()
-        # record every 1 min
-        if time_step % 60 == 0:
-            with open(result_file,'a') as f:
-                f_csv = writer(f)
-                tmp_A = round(factory[2].product.loc['A','total'],3)
-                tmp_B = round(factory[3].product.loc['B','total'],3)
-                tmp_P12 = round(factory[1].product.loc['P12','total'],3)
-                tmp_P23 = round(factory[2].product.loc['P23','total'],3)
-                tmp_lorry = len([i for i in lorry if i.state != 'broken' and i.state != 'repair'])
-                tmp_time = round((time_step / 3600),3)
-                f_csv.writerow([tmp_time,tmp_A,tmp_B,tmp_P12,tmp_P23,tmp_lorry])
-                # f.write(f'{tmp_time}\t{tmp_A}\t{tmp_B}\t{tmp_P12}\t{tmp_P23}\n')
-
-            # print every 5 min
-            if time_step % 300 == 0:
-                print('s is:\n',product.s)
-                print('s1 is:\n',product.s1)
-                print('s2 is:\n',product.s2)
-                print(f'current time: {time_step}')
-            # if time_step > 2000:
-            #     print(factory[1].container)
-
-    traci.close()
-    # sys.stdout.flush()
+# from sumo_env import sumoEnv
+# from train_env import sumoEnv
+from single_lorry_eva import sumoEnv
 
 def get_options():
-    optParser = optparse.OptionParser()
-    optParser.add_option("--nogui", action="store_true",
-                         default=False, help="run the commandline version of sumo")
-    optParser.add_option("--repair", action="store_true",
-                         default=False, help="repair or not")
-    optParser.add_option("-n","--lorry_num", default=4, type=int, help="number of lorry")
-    optParser.add_option("-c","--lorry_capacity", default=2.0, type=float,help="capacity of lorry")
-    optParser.add_option("-b","--broken_time", default=86400, type=float,help="broken duration")
-    optParser.add_option("-m","--mdp_broken", default=1/6, type=float,help="labmda1")
-    options, args = optParser.parse_args()
+    optParse = optparse.OptionParser()
+    optParse.add_option("-r","--repair",default=3,type=int,help="repair mean (days)")
+    optParse.add_option("-m","--maintain",default=4,type=int,help="maintain mean (hours)")
+    options, args = optParse.parse_args()
     return options
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     options = get_options()
-    
-    # this script has been called from the command line. It will start sumo as a
-    # server, then connect and run
-    mdl = 'transmission_fault_detection'
-    if options.nogui:
-        sumoBinary = checkBinary('sumo')
-    else:
-        sumoBinary = checkBinary('sumo-gui')
-    if options.repair:
-        repair_flag = True
-        print('repair engine every day')
-        path = f'result/{str(options.lorry_num)}lorry_capacity-{str(options.lorry_capacity)}_broken-{str(options.broken_time)}_mdp-{str(options.mdp_broken)}/repair'
-    else:
-        repair_flag = False
-        print('baseline')
-        path = f'result/{str(options.lorry_num)}lorry_capacity-{str(options.lorry_capacity)}_broken-{str(options.broken_time)}_mdp-{str(options.mdp_broken)}/baseline'
-    
-    eng = engine.connect_matlab()
-    try:
-        stop_time = eng.evalin('base', 'Tend')
-        print('Connect to current MATLAB session')
-    except:
-        print('No running session, create new MATLAB session')
-        print('Starting Simulink')
-        eng.open_system(mdl,nargout=0)
-        stop_time = eng.evalin('base', 'Tend')
-            
+    env = sumoEnv({'algo':f'repair-{options.repair}days_maintain-{options.maintain}hours','repair':options.repair,'maintain':options.maintain})
+    # init the env
+    obs = env.reset()
+    reward = 0
+    done_state = False
 
-    # Enable faster start and compiler the model
-    print('Compiling the model')
-    eng.set_param(mdl,'FastRestart','on',nargout=0)
-    out = eng.sim(mdl)
-
-    # Initial the model
-    clutch = -1*np.ones(6,dtype=np.int64)
-    eng.set_param(mdl+'/[A B C D E F]','Value',np.array2string(clutch),nargout=0)
-    init_clutch = eng.get_param(mdl + '/[A B C D E F]', 'Value')
-    traci.start([sumoBinary, "-c", "map/3km_1week/osm.sumocfg","--threads","6"])
-    # Connect to redpc
-    # traci.init(port=45687,host='redpc')
-
-    # Reload sumo map
-    # traci.load(["-c", "map/SG_south_24h/osm.sumocfg","--threads","8"])
-
-    # Create folder
-    Path(path).mkdir(parents=True,exist_ok=True)
-    run(eng,mdl,repair_flag, path, options)
-    eng.quit()
+    while done_state == False:
+        action = {}
+        for tmp_key in obs:
+            action[tmp_key] = 0
+        # action = agent.compute_single_action(observation=obs)
+        obs, reward, done_state, _ = env.step(action)

@@ -17,9 +17,10 @@ class sumoEnv(gym.Env):
     def __init__(self, env_config:EnvContext):
         # 12 lorries
         self.lorry_num = 12
-        self.path = f'result/RL-' + env_config['algo']
+        self.config = env_config
+        self.path = f'result/' + self.config['algo']
         # get cpu num
-        self.num_cpu = "20"
+        self.num_cpu = "8"
         # Create folder
         Path(self.path).mkdir(parents=True, exist_ok=True)
         self.lorry_file = self.path + '/lorry_record.csv'
@@ -63,7 +64,7 @@ class sumoEnv(gym.Env):
         traci.start(["sumo", "-c", "map/3km_1week/osm.sumocfg","--threads",self.num_cpu])
         # Create lorry
         self.lorry = [Lorry(lorry_id=f'lorry_{i}', path=self.path, capacity=0.5,
-                    time_broken=int(3*86400), env_step=self.mdp_step) for i in range(self.lorry_num)]
+                    time_broken=int(self.config['repair']*86400), env_step=self.mdp_step, maintenance_freq=self.config['maintain']*3600) for i in range(self.lorry_num)]
         # self.lorry = [Lorry(lorry_id=f'lorry_{i}', path=self.path, capacity=0.5,
         #             time_broken=int(1*86400), env_step=self.mdp_step, mdp_freq=0.6*3600, maintenance_freq=0.4*3600) for i in range(self.lorry_num)]
         # Create factory
