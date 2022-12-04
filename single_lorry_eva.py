@@ -41,7 +41,6 @@ class sumoEnv(gym.Env):
 
         self.episode_count = 0
         self.step_num = 0
-        self.init_sumo()
         # init record
         with open(self.result_file,'w') as f:
             f_csv = writer(f)
