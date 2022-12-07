@@ -34,7 +34,7 @@ class sumoEnv(gym.Env):
         self.mdp_step = 300
         # sumo step 86400*7
         # sumo repeating times
-        self.sumo_repeat = 1
+        self.sumo_repeat = 0
         # observation space, 9 sensor reading
         self.observation_space = spaces.Box(low=-2,high=2,shape=(9,))
         self.done = False
@@ -63,7 +63,7 @@ class sumoEnv(gym.Env):
         traci.start(["sumo", "-c", "map/3km_1week/osm.sumocfg","--threads",self.num_cpu])
         # Create lorry
         self.lorry = [Lorry(lorry_id=f'lorry_{i}', path=self.path, capacity=0.5,
-                    time_broken=int(self.config['repair']*86400), env_step=self.mdp_step, maintenance_freq=self.config['maintain']*3600) for i in range(self.lorry_num)]
+                    repair_freq=int(self.config['repair']*86400), env_step=self.mdp_step, maintenance_freq=self.config['maintain']*3600) for i in range(self.lorry_num)]
         # self.lorry = [Lorry(lorry_id=f'lorry_{i}', path=self.path, capacity=0.5,
         #             time_broken=int(1*86400), env_step=self.mdp_step, mdp_freq=0.6*3600, maintenance_freq=0.4*3600) for i in range(self.lorry_num)]
         # Create factory
@@ -88,11 +88,9 @@ class sumoEnv(gym.Env):
         self.episode_count += 1
         self.cumulate_reward = 0
 
-        current_time = traci.simulation.getTime()
-        if current_time >= 86400*7:
-            # init sumo
-            self.sumo_repeat += 1
-            self.init_sumo()
+        self.sumo_repeat += 1
+        self.init_sumo()
+        
             
         # lorry pool, only select normal lorry, i.e,. not 'broken'
         lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
@@ -100,9 +98,6 @@ class sumoEnv(gym.Env):
         # Get column name
         self.tmp_col = self.lorry[0].sensor.columns[0:9]
         # Read sensor reading, obs is a dictionary, key is the lorry id
-        # observation = np.array([tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry])
-        # observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry_pool}
-        # observation = self.lorry[0].sensor[self.tmp_col].values.flatten()
         observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values.flatten() for tmp_lorry in lorry_pool}
 
         self.done = False

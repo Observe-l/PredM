@@ -1,7 +1,6 @@
 import ray
 import os
 from ray import tune, air
-from ray.tune.registry import register_env
 from ray.rllib.algorithms import dqn, ppo, sac
 
 import optparse

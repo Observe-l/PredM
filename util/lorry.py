@@ -138,12 +138,13 @@ class Lorry(object):
             parking_state = tmp_pk[-1]
         except:
             try:
-                print(f'{self.id}, position:{self.position}, destination:{self.destination}, parking: {traci.vehicle.getStops(vehID=self.id)}, state: {self.state}')
-                print(f'weight: {self.weight}, mdp state: {self.mk_state}')
+                # print(f'{self.id}, position:{self.position}, destination:{self.destination}, parking: {traci.vehicle.getStops(vehID=self.id)}, state: {self.state}')
+                # print(f'weight: {self.weight}, mdp state: {self.mk_state}')
                 traci.vehicle.remove(vehID=self.id)
             except:
-                print(f'{self.id} has been deleted')
-                print(f'weight: {self.weight}, mdp state: {self.mk_state}')
+                # print(f'{self.id} has been deleted')
+                # print(f'weight: {self.weight}, mdp state: {self.mk_state}')
+                pass
             traci.vehicle.add(vehID=self.id,routeID=self.destination + '_to_'+ self.destination, typeID='lorry')
             traci.vehicle.setParkingAreaStop(vehID=self.id,stopID=self.destination)
             traci.vehicle.setColor(typeID=self.id,color=self.color)
@@ -182,7 +183,7 @@ class Lorry(object):
                 # In sumo the lorry resume from stop
                 # traci.vehicle.resume(vehID=self.id)
                 self.lorry_resume()
-                print(f'[recover] {self.id}, mdp state: {self.mk_state}')
+                # print(f'[recover] {self.id}, mdp state: {self.mk_state}')
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([self.time_step,self.id,self.mk_state,'recover after repaired'])
@@ -205,7 +206,7 @@ class Lorry(object):
         if self.state == 'delivery' and self.step % self.state_trans ==0:
             self.MDP_model()
             if self.mk_state == 8 or self.mk_state == 9:
-                print(f'[Broken] {self.id}')
+                # print(f'[Broken] {self.id}')
                 self.state = 'broken'
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
@@ -335,7 +336,7 @@ class Lorry(object):
                 self.lorry_stop()
             
             self.state = 'repair'
-            print(f'[repair] {self.id} back to state {self.mk_state}')
+            # print(f'[repair] {self.id} back to state {self.mk_state}')
     
     def broken_repair(self):
         lm = random.uniform(0,1)
@@ -350,7 +351,7 @@ class Lorry(object):
                 #     traci.vehicle.resume(vehID=self.id)
                 # except:
                 #     pass
-            print(f'[recover] {self.id}, mdp state: {self.mk_state}')
+            # print(f'[recover] {self.id}, mdp state: {self.mk_state}')
             self.broken_step = 0
             with open(self.path,'a') as f:
                 f_csv = writer(f)
@@ -371,14 +372,14 @@ class Lorry(object):
                 self.lorry_stop()
             if lm < self.threshold1:
                 self.mk_state = 9
-                print(f'[Broken] {self.id}')
+                # print(f'[Broken] {self.id}')
                 self.state = 'broken'
                 # self.maintenance_flag = False
                 return 'broken'
             else:
                 self.mk_state += 4
                 self.state = 'maintenance'
-                print(f'[maintenance] {self.id} go to state {self.mk_state}')
+                # print(f'[maintenance] {self.id} go to state {self.mk_state}')
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
                     f_csv.writerow([self.time_step,self.id,self.mk_state,'maintenance'])
@@ -395,7 +396,7 @@ class Lorry(object):
                     # except:
                     #     pass
                 # self.maintenance_flag = False
-                print(f'[recover] {self.id}, mdp state: {self.mk_state}')
+                # print(f'[recover] {self.id}, mdp state: {self.mk_state}')
                 self.maintenance_step = 0
                 with open(self.path,'a') as f:
                     f_csv = writer(f)
@@ -436,6 +437,6 @@ class Lorry(object):
                 self.mk_state = 8
         else:
             self.mk_state = self.mk_state
-        print(f'[MDP state] {self.id} state: {self.mk_state}, time:{self.time_step}')
+        # print(f'[MDP state] {self.id} state: {self.mk_state}, time:{self.time_step}')
         
         

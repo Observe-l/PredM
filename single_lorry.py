@@ -19,7 +19,7 @@ class sumoEnv(gym.Env):
         self.lorry_num = 12
         self.path = f'result/RL-' + env_config['algo']
         # get cpu num
-        self.num_cpu = "20"
+        self.num_cpu = "8"
         # Create folder
         Path(self.path).mkdir(parents=True, exist_ok=True)
         self.lorry_file = self.path + '/lorry_record.csv'
@@ -33,14 +33,13 @@ class sumoEnv(gym.Env):
         self.mdp_step = 300
         # sumo step 86400*7
         # sumo repeating times
-        self.sumo_repeat = 1
+        self.sumo_repeat = 0
         # observation space, 9 sensor reading
         self.observation_space = spaces.Box(low=-2,high=2,shape=(9,))
         self.done = False
 
         self.episode_count = 0
         self.step_num = 0
-        self.init_sumo()
         # init record
         with open(self.result_file,'w') as f:
             f_csv = writer(f)
@@ -78,7 +77,7 @@ class sumoEnv(gym.Env):
         for _ in range(self.mdp_step*2):
             traci.simulationStep()
             current_time = traci.simulation.getTime()
-            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400*7, repair_flag=False) for tmp_lorry in self.lorry]
+            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400/2, repair_flag=False) for tmp_lorry in self.lorry]
             self.product.produce_load()
             self.product.lorry_manage()
 
@@ -87,12 +86,9 @@ class sumoEnv(gym.Env):
         print(f'episode:{self.episode_count}')
         self.episode_count += 1
         self.cumulate_reward = 0
-
-        current_time = traci.simulation.getTime()
-        if current_time >= 86400*7:
-            # init sumo
-            self.sumo_repeat += 1
-            self.init_sumo()
+        # init sumo
+        self.sumo_repeat += 1
+        self.init_sumo()
             
         # lorry pool, only select normal lorry, i.e,. not 'broken'
         lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
@@ -121,7 +117,7 @@ class sumoEnv(gym.Env):
         for _ in range(self.mdp_step):
             traci.simulationStep()
             current_time = traci.simulation.getTime()
-            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400*7, repair_flag=False) for tmp_lorry in self.lorry]
+            tmp_state = [tmp_lorry.refresh_state(time_step=current_time + (self.sumo_repeat-1)*86400/2, repair_flag=False) for tmp_lorry in self.lorry]
             self.product.produce_load()
             self.product.lorry_manage()
 
@@ -150,7 +146,7 @@ class sumoEnv(gym.Env):
             tmp_time = round(current_time / 3600 + (self.sumo_repeat-1)*7*24,3)
             f_csv.writerow([tmp_time, reward, self.cumulate_reward])
         # Terminate the episode after 1 week
-        if current_time >= 86400*7:
+        if current_time >= 86400/2:
             self.done = True
         
         return observation, reward, self.done, {}

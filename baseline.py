@@ -1,7 +1,3 @@
-import ray
-import os
-from ray import tune, air
-from ray.rllib.algorithms import dqn, ppo, sac
 import optparse
 
 # from sumo_env import sumoEnv
@@ -17,7 +13,7 @@ def get_options():
 
 if __name__ == '__main__':
     options = get_options()
-    env = sumoEnv({'algo':f'repair-{options.repair}days_maintain-{options.maintain}hours','repair':options.repair,'maintain':options.maintain})
+    env = sumoEnv({'algo':f'baseline-repair-{options.repair}days','repair':options.repair,'maintain':options.maintain})
     # init the env
     obs = env.reset()
     reward = 0
