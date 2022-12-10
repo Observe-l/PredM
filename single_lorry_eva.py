@@ -127,12 +127,11 @@ class sumoEnv(gym.Env):
         lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
         
         # Read sensor reading. Only those normal lorries can be selected
-        observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in lorry_pool}
+        observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values.flatten() for tmp_lorry in lorry_pool}
         # Get the reward
         reward = {}
         current_trans = {tmp_lorry.id:tmp_lorry.total_product for tmp_lorry in self.lorry}
         tmp_reward = 0
-        tmp_cumulate = 0
         self.cumulate_reward = 0
         for tmp_lorry in self.lorry:
             reward[tmp_lorry.id] = current_trans[tmp_lorry.id] - last_trans[tmp_lorry.id]
