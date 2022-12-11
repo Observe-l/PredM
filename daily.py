@@ -14,15 +14,20 @@ def get_options():
 
 if __name__ == '__main__':
     options = get_options()
-    env = sumoEnv({'algo':f'baseline-repair-{options.repair}days_density-{options.density}','repair':options.repair,'maintain':options.maintain,'map':options.density})
+    env = sumoEnv({'algo':f'daily-repair-{options.repair}days_maintain-{options.maintain}hours_density-{options.density}','repair':options.repair,'maintain':options.maintain,'map':options.density})
     # init the env
     obs = env.reset()
     reward = 0
     done_state = False
+    step_count = 2
 
     while done_state == False:
         action = {}
+        tmp_act = 0
+        if step_count % 288 ==0:
+            tmp_act = 1
         for tmp_key in obs:
-            action[tmp_key] = 0
+            action[tmp_key] = step_count
         # action = agent.compute_single_action(observation=obs)
         obs, reward, done_state, _ = env.step(action)
+        step_count += 1

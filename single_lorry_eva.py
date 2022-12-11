@@ -21,6 +21,14 @@ class sumoEnv(gym.Env):
         self.path = f'result/' + self.config['algo']
         # get cpu num
         self.num_cpu = "8"
+        if self.config['map'] == 2:
+            self.map_file = "map/3km_1week_10/osm.sumocfg"
+        elif self.config['map'] == 3:
+            self.map_file = "map/3km_1week_15/osm.sumocfg"
+        elif self.config['map'] == 4:
+            self.map_file = "map/3km_1week_20/osm.sumocfg"
+        else:
+            self.map_file = "map/3km_1week/osm.sumocfg"
         # Create folder
         Path(self.path).mkdir(parents=True, exist_ok=True)
         self.lorry_file = self.path + '/lorry_record.csv'
@@ -60,7 +68,7 @@ class sumoEnv(gym.Env):
         except:
             pass
         print(f"using {self.num_cpu} cpus")
-        traci.start(["sumo", "-c", "map/3km_1week/osm.sumocfg","--threads",self.num_cpu])
+        traci.start(["sumo", "-c", self.map_file,"--threads",self.num_cpu])
         # Create lorry
         self.lorry = [Lorry(lorry_id=f'lorry_{i}', path=self.path, capacity=0.5,
                     repair_freq=int(self.config['repair']*86400), env_step=self.mdp_step, maintenance_freq=self.config['maintain']*3600) for i in range(self.lorry_num)]
