@@ -27,7 +27,7 @@ if __name__ == '__main__':
         if step_count % 288 ==0:
             tmp_act = 1
         for tmp_key in obs:
-            action[tmp_key] = step_count
+            action[tmp_key] = tmp_act
         # action = agent.compute_single_action(observation=obs)
         obs, reward, done_state, _ = env.step(action)
         step_count += 1
