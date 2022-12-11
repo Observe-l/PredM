@@ -7,7 +7,7 @@
 
     <input>
         <net-file value="osm.net.xml.gz"/>
-        <route-files value="osm.bus.trips.xml,osm.passenger.trips.xml,osm.truck.trips.xml,osm.bus.trips_dup1.xml,osm.passenger.trips_dup1.xml,osm.truck.trips_dup1.xml,osm.bus.trips_dup2.xml,osm.passenger.trips_dup2.xml,osm.truck.trips_dup2.xml, osm.bus.trips_dup3.xml,osm.passenger.trips_dup3.xml,osm.truck.trips_dup3.xml,lorry.rou.xml"/>
+        <route-files value="osm.bus.trips.xml,osm.passenger.trips.xml,osm.truck.trips.xml,osm.bus.trips_dup1.xml,osm.passenger.trips_dup1.xml,osm.truck.trips_dup1.xml,osm.bus.trips_dup2.xml,osm.passenger.trips_dup2.xml,lorry.rou.xml"/>
         <additional-files value="osm.poly.xml.gz,factory.prk.xml"/>
     </input>
 
