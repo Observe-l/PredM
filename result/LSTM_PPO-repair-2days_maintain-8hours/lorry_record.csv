@@ -1,0 +1,117 @@
+time,lorry id,MDP,state
+9301.0,lorry_3,7,maintenance
+15301.0,lorry_6,7,maintenance
+24902.0,lorry_6,2,recover after maintenance
+38702.0,lorry_3,2,recover after maintenance
+43944.0,lorry_0,8,broken
+44701.0,lorry_3,7,maintenance
+45302.0,lorry_3,2,recover after maintenance
+45901.0,lorry_10,7,maintenance
+48602.0,lorry_10,2,recover after maintenance
+50063.0,lorry_4,8,broken
+54935.0,lorry_11,8,broken
+62401.0,lorry_6,7,maintenance
+64802.0,lorry_6,2,recover after maintenance
+65996.0,lorry_3,9,broken
+67201.0,lorry_5,7,maintenance
+68701.0,lorry_7,7,maintenance
+68702.0,lorry_7,2,recover after maintenance
+69001.0,lorry_9,7,maintenance
+76201.0,lorry_6,7,maintenance
+78601.0,lorry_8,7,maintenance
+89101.0,lorry_10,7,maintenance
+91502.0,lorry_10,2,recover after maintenance
+96002.0,lorry_8,2,recover after maintenance
+98701.0,lorry_8,7,maintenance
+99001.0,lorry_7,7,maintenance
+106201.0,lorry_2,7,maintenance
+114902.0,lorry_5,2,recover after maintenance
+117902.0,lorry_2,2,recover after maintenance
+118797.0,lorry_3,0,recover after broken
+123602.0,lorry_9,2,recover after maintenance
+126001.0,lorry_10,7,maintenance
+130802.0,lorry_7,2,recover after maintenance
+146808.0,lorry_5,8,broken
+147902.0,lorry_6,2,recover after maintenance
+147902.0,lorry_8,2,recover after maintenance
+159901.0,lorry_1,7,maintenance
+180001.0,lorry_3,7,maintenance
+180902.0,lorry_3,2,recover after maintenance
+181201.0,lorry_3,6,maintenance
+181501.0,lorry_2,7,maintenance
+183602.0,lorry_3,1,recover after maintenance
+183802.0,lorry_8,8,broken
+187502.0,lorry_2,2,recover after maintenance
+192922.0,lorry_6,8,broken
+197736.0,lorry_11,0,recover after broken
+198656.0,lorry_7,8,broken
+203101.0,lorry_2,7,maintenance
+204302.0,lorry_2,2,recover after maintenance
+206102.0,lorry_10,2,recover after maintenance
+215101.0,lorry_9,7,maintenance
+241802.0,lorry_1,2,recover after maintenance
+242364.0,lorry_4,0,recover after broken
+244502.0,lorry_9,2,recover after maintenance
+245101.0,lorry_1,7,maintenance
+249302.0,lorry_1,2,recover after maintenance
+251245.0,lorry_0,0,recover after broken
+252001.0,lorry_1,7,maintenance
+254250.0,lorry_10,8,broken
+261357.0,lorry_7,0,recover after broken
+270601.0,lorry_11,7,maintenance
+278929.0,lorry_2,8,broken
+280801.0,lorry_0,7,maintenance
+283549.0,lorry_3,8,broken
+290102.0,lorry_0,2,recover after maintenance
+292027.0,lorry_9,8,broken
+295430.0,lorry_2,0,recover after broken
+297901.0,lorry_0,7,maintenance
+305102.0,lorry_0,2,recover after maintenance
+306301.0,lorry_0,7,maintenance
+315001.0,lorry_7,7,maintenance
+321302.0,lorry_0,2,recover after maintenance
+327301.0,lorry_2,7,maintenance
+335102.0,lorry_1,2,recover after maintenance
+335401.0,lorry_1,7,maintenance
+336902.0,lorry_1,2,recover after maintenance
+343523.0,lorry_6,0,recover after broken
+343801.0,lorry_4,7,maintenance
+348650.0,lorry_3,0,recover after broken
+350702.0,lorry_7,2,recover after maintenance
+360902.0,lorry_11,2,recover after maintenance
+367651.0,lorry_10,0,recover after broken
+372301.0,lorry_1,7,maintenance
+384902.0,lorry_1,2,recover after maintenance
+387601.0,lorry_1,7,maintenance
+391801.0,lorry_10,7,maintenance
+392401.0,lorry_6,7,maintenance
+405302.0,lorry_4,2,recover after maintenance
+407334.0,lorry_7,8,broken
+408901.0,lorry_4,7,maintenance
+414901.0,lorry_3,7,maintenance
+415160.0,lorry_11,8,broken
+424802.0,lorry_2,2,recover after maintenance
+427202.0,lorry_10,2,recover after maintenance
+428512.0,lorry_0,8,broken
+450113.0,lorry_0,0,recover after broken
+461402.0,lorry_3,2,recover after maintenance
+474901.0,lorry_3,7,maintenance
+476035.0,lorry_7,0,recover after broken
+480649.0,lorry_10,8,broken
+481202.0,lorry_1,2,recover after maintenance
+481502.0,lorry_3,2,recover after maintenance
+485390.0,lorry_2,8,broken
+506702.0,lorry_4,2,recover after maintenance
+512616.0,lorry_4,8,broken
+520909.0,lorry_5,0,recover after broken
+527101.0,lorry_0,7,maintenance
+533702.0,lorry_6,2,recover after maintenance
+533789.0,lorry_1,9,broken
+539402.0,lorry_0,2,recover after maintenance
+556850.0,lorry_10,0,recover after broken
+565164.0,lorry_5,8,broken
+566790.0,lorry_1,0,recover after broken
+570428.0,lorry_9,0,recover after broken
+572917.0,lorry_4,0,recover after broken
+573576.0,lorry_3,8,broken
+577801.0,lorry_0,7,maintenance
