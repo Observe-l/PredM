@@ -154,3 +154,29 @@ time,lorry id,MDP,state
 421999.0,lorry_7,0,recover after broken
 428101.0,lorry_8,6,maintenance
 429602.0,lorry_8,1,recover after maintenance
+431552.0,lorry_3,0,recover after broken
+435901.0,lorry_4,5,maintenance
+437401.0,lorry_5,7,maintenance
+451030.0,lorry_8,9,broken
+453002.0,lorry_5,2,recover after maintenance
+456601.0,lorry_7,4,maintenance
+461402.0,lorry_10,0,recover after maintenance
+462924.0,lorry_9,8,broken
+467101.0,lorry_3,6,maintenance
+486301.0,lorry_5,7,maintenance
+493202.0,lorry_7,0,recover after maintenance
+495602.0,lorry_3,1,recover after maintenance
+497101.0,lorry_7,4,maintenance
+497101.0,lorry_10,7,maintenance
+500402.0,lorry_4,0,recover after maintenance
+500402.0,lorry_5,2,recover after maintenance
+505563.0,lorry_6,0,recover after broken
+506175.0,lorry_11,0,recover after broken
+512701.0,lorry_5,7,maintenance
+514202.0,lorry_7,0,recover after maintenance
+514544.0,lorry_1,0,recover after broken
+515401.0,lorry_3,7,maintenance
+516301.0,lorry_1,4,maintenance
+517201.0,lorry_4,5,maintenance
+517202.0,lorry_5,2,recover after maintenance
+518401.0,lorry_5,6,maintenance
