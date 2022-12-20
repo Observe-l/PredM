@@ -52,6 +52,4 @@ result=tunner.fit()
 best_checkpoint = result.get_best_result(metric='episode_reward_mean',mode='max',scope='avg').log_dir
 print(best_checkpoint)
 with open('PPO_LSTM_best_checkpoint.txt','w') as f:
-    f.write(best_checkpoint)
-
-ray.shutdown()
+    f.write(str(best_checkpoint))
