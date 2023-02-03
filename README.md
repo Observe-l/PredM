@@ -95,7 +95,7 @@ Condition (Observation space):
 
   $m_{1_2}=min\{m_{BP12},3*lorry\, capacity\}-(m_{CP12}+m_{lorry\_P12})$
 
-  $S1[1]=p_1*m_{1_1}+p_2*m_{1_2}$
+  $S1[1]=p_1*m_{11}+p_2*m_{12}$
 
 * Score of lorry density
 

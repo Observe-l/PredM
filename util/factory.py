@@ -70,7 +70,7 @@ class Factory(object):
         # Check the storage
         if self.id in lorry.position and (lorry.state == 'waitting' or lorry.state == 'loading') and self.container.loc[product,'storage'] != 0:
             # if lorry.state == 'waitting':
-                #print when startting loading
+                # print when startting loading
                 # print(f'[loading] {lorry.id} start loading {product} at:{self.id}')
             # Maximum loading speed: 0.05 t/s
             load_weight = min(0.05, self.container.loc[product,'storage'])
@@ -84,7 +84,7 @@ class Factory(object):
         '''
         if self.id in lorry.position and (lorry.state == 'pending for unloading' or lorry.state == 'unloading') and self.container.loc[lorry.product,'storage'] < self.container.loc[lorry.product,'capacity']:
             # if lorry.state == 'pending for unloading':
-                #print when startting unloading
+                # print when startting unloading
                 # print(f'[unloading] {lorry.id} start unloading {lorry.product} at:{self.id}')
             # Maximum loading speed: 0.05 t/s
             unload_weight = min(0.05, self.container.loc[lorry.product,'capacity'] - self.container.loc[lorry.product,'storage'])
