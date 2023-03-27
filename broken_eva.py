@@ -1,14 +1,14 @@
 import gym
 from gym import spaces
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
-from ray.rllib.env.env_context import EnvContext
 from csv import writer
 from pathlib import Path
 import numpy as np
 import traci
 import sys
+import optparse
 
-from util.lorry import Lorry
+from util.lorry_eva import Lorry
 from util.factory import Factory
 from util.product import product_management
 
@@ -16,11 +16,11 @@ class sumoEnv(MultiAgentEnv):
     '''
     sumo environment. state is the engine state (or sensor reading), action is repaired or not
     '''
-    def __init__(self, env_config:EnvContext):
+    def __init__(self, env_config:dict):
         # 12 lorries
-        self.lorry_num = 12
         self.config = env_config
-        self.path = f'/home/lwh/Documents/Code/PredM/result/' + self.config['algo']
+        self.lorry_num =  self.config["truck"]
+        self.path = f'/home/lwh/Documents/Code/PredM/result/' + self.config['algo'] +'_' + str(self.config["truck"])
         # get cpu num
         self.num_cpu = "20"
         # Select traffic density
@@ -172,3 +172,26 @@ class sumoEnv(MultiAgentEnv):
     
     def render(self):
         pass
+
+
+def get_options():
+    optParse = optparse.OptionParser()
+    optParse.add_option("-n","--number",default=12,type=int,help="number of turcks")
+    options, args = optParse.parse_args()
+    return options
+
+
+def main():
+    options = get_options()
+
+    env_config = {"algo":"broken_eva", "repair":3, "maintain":4, "mdp":6, "step_len":7, "truck":options.number, "map":1}
+    eva_env = sumoEnv(env_config)
+    eva_env.reset()
+    # Default action: None
+    tmp_action = {"all":0}
+    obs, rew, done_flag, _ = eva_env.step(tmp_action)
+    while done_flag['__all__'] == False:
+        obs, rew, done_flag, _ = eva_env.step(tmp_action)
+
+if __name__ == '__main__':
+    main()

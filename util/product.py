@@ -1,8 +1,6 @@
 import traci
 import numpy as np
 import pandas as pd
-from .lorry import Lorry
-from .factory import Factory
 
 class product_management(object):
     '''
