@@ -191,7 +191,9 @@ class Lorry(object):
         #         # terminate the episode
         #         self.episode_flag = True
         # ignore the maintenance state
-        if self.mk_state > 3:
+        if self.state == 'broken':
+            pass
+        elif self.mk_state > 3:
             pass
         elif parking_state.arrival < 0:
             self.state = 'delivery'
@@ -271,6 +273,7 @@ class Lorry(object):
     def mannually_broken(self):
         self.lorry_stop()
         self.state = 'broken'
+        print(f'truck {self.id} is broken at {self.time_step}')
 
     # Resume the lorry mannually
     def mannually_resume(self):

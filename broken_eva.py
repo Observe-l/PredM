@@ -7,6 +7,7 @@ import numpy as np
 import traci
 import sys
 import optparse
+import random
 
 from util.lorry_eva import Lorry
 from util.factory import Factory
@@ -19,10 +20,10 @@ class sumoEnv(MultiAgentEnv):
     def __init__(self, env_config:dict):
         # 12 lorries
         self.config = env_config
-        self.lorry_num =  self.config["truck"]
-        self.path = f'/home/lwh/Documents/Code/PredM/result/' + self.config['algo'] +'_' + str(self.config["truck"])
+        self.lorry_num =  12
+        self.path = f'/home/lwh/Documents/Code/PredM/result/' + self.config['algo']
         # get cpu num
-        self.num_cpu = "20"
+        self.num_cpu = "32"
         # Select traffic density
         if self.config['map'] == 2:
             self.map_file = "map/3km_1week_10/osm.sumocfg"
@@ -75,8 +76,8 @@ class sumoEnv(MultiAgentEnv):
         # Create lorry
         self.lorry = [Lorry(lorry_id=f'lorry_{i}', path=self.path, capacity=0.5,
                     repair_freq=int(self.config['repair']*86400), env_step=self.mdp_step, maintenance_freq=self.config['maintain']*3600,mdp_freq = self.config['mdp']*3600) for i in range(self.lorry_num)]
-#         self.lorry = [Lorry(lorry_id=f'lorry_{i}', path=self.path, capacity=0.5,
-#                     time_broken=int(1*86400), env_step=self.mdp_step, mdp_freq=0.6*3600, maintenance_freq=0.4*3600) for i in range(self.lorry_num)]
+        # self.lorry = [Lorry(lorry_id=f'lorry_{i}', path=self.path, capacity=0.5,
+        #             time_broken=int(1*86400), env_step=self.mdp_step, mdp_freq=0.6*3600, maintenance_freq=0.4*3600) for i in range(self.lorry_num)]
         # Create factory
         self.factory = [Factory(factory_id='Factory0', produce_rate=[['P1',5,None,None]]),
                 Factory(factory_id='Factory1', produce_rate=[['P2',10,None,None],['P12',2.5,'P1,P2','1,1']]),
@@ -110,7 +111,7 @@ class sumoEnv(MultiAgentEnv):
         # Read sensor reading, obs is a dictionary, key is the lorry id
         # observation = np.array([tmp_lorry.sensor[self.tmp_col].values for tmp_lorry in self.lorry])
         observation = {tmp_lorry.id:tmp_lorry.sensor[self.tmp_col].values.flatten() for tmp_lorry in self.lorry}
-#         observation = self.lorry[0].sensor[self.tmp_col].values.flatten()
+        # observation = self.lorry[0].sensor[self.tmp_col].values.flatten()
 
         self.done['__all__'] = False
         return observation
@@ -170,13 +171,22 @@ class sumoEnv(MultiAgentEnv):
 
         return observation, reward, self.done, {}
     
+    # Define a function, mannually set a truck state to 'broken'
+    def truck_broken(self, num):
+        # get the normal lorry
+        lorry_pool = [tmp_lorry for tmp_lorry in self.lorry if tmp_lorry.state != 'broken' and tmp_lorry.state != 'repair' and tmp_lorry.state != 'maintenance']
+        # random select lorry
+        broken_truck = random.sample(lorry_pool,num)
+        for i in range(len(broken_truck)):
+            broken_truck[i].mannually_broken()
+    
     def render(self):
         pass
 
 
 def get_options():
     optParse = optparse.OptionParser()
-    optParse.add_option("-n","--number",default=12,type=int,help="number of turcks")
+    optParse.add_option("-n","--number",default=1,type=int,help="number of turcks")
     options, args = optParse.parse_args()
     return options
 
@@ -184,7 +194,7 @@ def get_options():
 def main():
     options = get_options()
 
-    env_config = {"algo":"broken_eva", "repair":3, "maintain":4, "mdp":6, "step_len":7, "truck":options.number, "map":1}
+    env_config = {"algo":"broken_eva_"+str(options.number), "repair":3, "maintain":4, "mdp":6, "step_len":7, "map":1}
     eva_env = sumoEnv(env_config)
     eva_env.reset()
     # Default action: None
@@ -192,6 +202,9 @@ def main():
     obs, rew, done_flag, _ = eva_env.step(tmp_action)
     while done_flag['__all__'] == False:
         obs, rew, done_flag, _ = eva_env.step(tmp_action)
+        current_time = traci.simulation.getTime()
+        if current_time % 86400 <= 200:
+            eva_env.truck_broken(options.number)
 
 if __name__ == '__main__':
     main()
